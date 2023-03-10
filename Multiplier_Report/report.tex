@@ -366,7 +366,11 @@ With all of these steps a 16-bit Multiplier can be constructed out of four 8-bit
     \label{fig:8bit}
 \end{figure} 
 
-The final 16-bit multiplier design can be seen in figure 
+The final 16-bit multiplier design can be seen in figure \ref{fig:8bit},
+note that the inputs and outputs mirror that of the original 8-bit multiplier with a clock, reset, start going in along side two 8-bit values and a single 16-bit output with a done line.
+All inputs are connected to the inputs of the 8-bit multipliers with-in, with the A and B line being split as describe earlier. 
+The output consits of the result obtained by following equation \ref{eq:16bit_add} and the done line waiting for all four multiplier to have output on their done line.
+This simple combination of 7 components and few extra logic gates is also known as a 
 
 \subsection{Theory}
 \subsection{Test Bench}
