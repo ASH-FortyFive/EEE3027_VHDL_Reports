@@ -13,11 +13,13 @@
 ]{biblatex}
 \usepackage{xcolor}
 \usepackage{soul}
+\usepackage{listings}
 
 \newcommand{\hlc}[2][yellow]{{%
     \colorlet{foo}{#1}%
     \sethlcolor{foo}\hl{#2}}%
 }
+
 
 \addbibresource{report.bib}
 
@@ -25,8 +27,8 @@
 
 \pagestyle{fancy}
 \fancyhead[C]{Report}
-\fancyhead[L]{EEE3032 Visual Search Project}
-\fancyhead[R]{22nd of November}
+\fancyhead[L]{EEE3027 Multiplier Assignment}
+\fancyhead[R]{14th of March}
 
 \cfoot{} % get rid of the page number 
 \fancyfoot[L]{6596386}
@@ -57,7 +59,12 @@
 \end{titlepage}
 
 \begin{abstract}
-A report init
+This report cover the work done on testing an 8-bit multiplier in VHDL and creating as well as testing a 16-bit multiplier
+as part of EEE3027 Digital Design with VHD.
+The objectives of this assignment were to learn the skills required to create and analyze VHDL circuits. 
+Further details on the theory and design behind these multipliers including both structural and combinational design are with-in the report. 
+Also included is details of the test benches used and analysis of the simulation data.
+Finally possible improvements are discussed.
 
 \vspace{1cm}
 \end{abstract}
@@ -65,7 +72,7 @@ A report init
 \pagebreak
 
 \section{8-Bit Multiplier}
-For this assignment the components for this style of multiplier were provided.
+For this assignment, the components for this style of multiplier were provided.
 This includes an 8-bit ripple adder, an 8-bit register, an 8-bit multiplexer, a variable length zero detector, a variable length shift register, a Moore state machine,
 and the design for the 8-bit multiplier.
 Note that this final design is structural, with the VHDL code for the multiplier only connecting components together.
@@ -98,7 +105,7 @@ This basic theory will lead us to the combinational design in figure \ref{fig:mu
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.5\textwidth]{MultFA.png}
+    \includegraphics[width=.5\textwidth, origin=c, angle=270]{MultFA.png}
     \caption{8-Bit Multiplier using Full Adders \cite{dally}}
     \label{fig:mult_fa}
 \end{figure} 
@@ -114,7 +121,7 @@ For this assignment however this combinational design was not used,
 instead a sequential style of multiplier was provided which is clocked and relies on a Moore state machine to control shifting and adding.
 Unlike in combinational circuits, which rely only on the current state of the input, sequential designs use feedback to store information about previous inputs\cite{dally}.
 In this case the given circuit is also synchronous meaning that any storage is linked to a clock to ensure all changes happen simultaneously and that races do not occur.
-Being both sequential and synchronous makes our circuit a Finite-State Machine\cite{dally}.
+Being both sequential and synchronous makes the circuit a Finite-State Machine\cite{dally}.
 Figure \ref{fig:4bit_mult} shows this alternative multiplier design. 
 
 \begin{figure}[H]        
@@ -124,7 +131,7 @@ Figure \ref{fig:4bit_mult} shows this alternative multiplier design.
     \label{fig:4bit_mult}
 \end{figure} 
 
-F1, our state machine, is at the core of this design and in order to understand the multiplier the operation of the state machine must be understood.
+F1, the state machine, is at the core of this design and in order to understand the multiplier the operation of the state machine must be understood.
 One way to visualize a state machine is with a state diagram, such as the one in figure \ref{fig:msm} which is based on the design in \cite{smith1997application}.
 
 \begin{figure}[H]        
@@ -134,7 +141,7 @@ One way to visualize a state machine is with a state diagram, such as the one in
     \label{fig:msm}
 \end{figure} 
 
-Upon reset we will always enter state E,
+Upon reset the state machine will always enter state E,
 this is also in fact the only asynchronous part of the design as this state change will happen as soon as the reset lines goes high while every other state change will only occur on the rising edge of the clock.
 In state E the state machine will output '1' on the Done line (any output not labeled as going to '1' is assumed to go to '0') which does not impact any of the other components and is in fact simply and output of the multiplier.
 As shown in the diagram while in state E every clock the start signal is checked, as long as it it '0' the state machine remains in state E however once it is high it moves to state I.
@@ -144,8 +151,8 @@ The Init line also connects to the LD of both shift registers causing inputs A a
 Once in the I state the state machine will always transition to state C. 
 In state C the machine "checks" the value of shift register SR1,
 in particular if all the bits of SR1's output bus are zero (which is sent by the all zero detect Z1 into the stop line) as well as the value of the least significant bit (LSB).
-If the LSB bit is '1' we move to the A state, otherwise the stop line is checked.
-When the stop line and LSB bit are '0' the S state is selected and finally if the stop line is '1' and the LSB is '0' we return to the E state.
+If the LSB bit is '1' the state moves to the A state, otherwise the stop line is checked.
+When the stop line and LSB bit are '0' the S state is selected and finally if the stop line is '1' and the LSB is '0' the state returns to the E state.
 When in the A state the Add lines goes to '1', which will make the multiplexer M1 select the output of adder A1 instead of the current value of the register R1.
 R1 hold the output value meaning that when the Add line is '0' and M1 feed R1 back into R1 nothing will happen, however when R1 is high the output of A1 will be go into R1.
 A1 adds the output of SR2 together with R1.
@@ -176,23 +183,35 @@ Keeping track of errors helped during debugging to ensure that the multiplier fu
     \label{fig:4bit_testbench}
 \end{figure} 
 
-Comprehensive testing ensures
+Comprehensive testing ensures that the multiplier will work as expected in every single case
 
 \subsection{Timing Analysis}
 
 The worst case timing of the 8-bit multiplier can be found by delving into state machine. 
 This is because timing is dictated by the amount of clock cycles, with each full clock cycle being 20ns, and the state machine will dictated how many clock cycles multiplication takes.
-Referring to the diagram in figure \ref{fig:msm} the shortest journey occurs when we go from $E \rightarrow I \rightarrow C \rightarrow E$, which occurs anytime A is $A = 0_16$ regardless of the value of B.
+Referring to the diagram in figure \ref{fig:msm} the shortest journey occurs when the state go from $E \rightarrow I \rightarrow C \rightarrow E$, which occurs anytime A is $A = 0_{16}$ regardless of the value of B.
 This would take only 60ns to from start input to done output.
-The longest journey will occur if we need to add and shift for every single bit of A, ie when $A = F_16$, this is once again independent of the value of B.
-In this case we would go $E \rightarrow I \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow E$.
-This would take 300ns from start to done, which we can confirm in simulation as seen in figure \ref{fig:4bit_worstcase}.
+The longest journey will occur if the multiplier needs to add and shift for every single bit of A, ie when $A = F_{16}$, this is once again independent of the value of B.
+In this case it would go $E \rightarrow I \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow E$.
+This would take 300ns from start to done, which can be confirmed in simulation as seen in figure \ref{fig:4bit_worstcase}.
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.5\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{Logo.png}
     \caption{Worst Case performance of 8-Bit Multiplier}
     \label{fig:4bit_worstcase}
+\end{figure} 
+
+The average execution time can also be calculated based on the states given a uniform distribution of values of A. 
+While a mathematical proof is possible, for this report all possible values of A and the amount of clock cycles taken were simulated using python code (see appendix)
+which revealed the average number of clock cycles is 11.125, which would give an execution time, on average, of 222.5 ns.
+Below is a bar graph, figure \ref{fig:bar}, of all possible clock cycles times.
+
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=\textwidth]{ClockCycles.png}
+    \caption{Bar Graph of all Clock Cycles}
+    \label{fig:bar}
 \end{figure} 
 
 \section{8-Bit Multiplier}
@@ -201,8 +220,11 @@ This would take 300ns from start to done, which we can confirm in simulation as 
 These methods however go against some VHDL good practice (as well as against the assignment's instructions),
 as it is preferred to have smaller components that can be reused throughout a design.
 
-Instead therefore the 8-bit multiplier was used as a component, along side more 8-bit adders. 
-This is because we can describe 16-bit multiplication as four separate 8-bit multiplication.
+\subsection{Theory}
+
+
+For this assignment the 8-bit multiplier was used as a component, along side additional 8-bit adders. 
+This is because 16-bit multiplication can be described as four separate 8-bit multiplication.
 Take for example the multiplication of $49_16$ and $9D_16$ in equation \ref{eq:16bit} below.
 
 \begin{equation}
@@ -224,7 +246,7 @@ Take for example the multiplication of $49_16$ and $9D_16$ in equation \ref{eq:1
     \end{tabular} 
 \end{equation}
 
-As shown by the colors this can be broken down into the following four 8-bit multiplications. 
+As shown by the colors this can be broken down into the following four 4-bit multiplications. 
 \vspace{5mm}
 \begin{minipage}{.5\linewidth}
     \begin{equation}
@@ -361,7 +383,7 @@ With all of these steps a 16-bit Multiplier can be constructed out of four 8-bit
 
 \begin{figure}[H]         
     \centering
-    \includegraphics[width=.5\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{Logo.png}
     \caption{16-Bit Multiplier}
     \label{fig:8bit}
 \end{figure} 
@@ -369,15 +391,90 @@ With all of these steps a 16-bit Multiplier can be constructed out of four 8-bit
 The final 16-bit multiplier design can be seen in figure \ref{fig:8bit},
 note that the inputs and outputs mirror that of the original 8-bit multiplier with a clock, reset, start going in along side two 8-bit values and a single 16-bit output with a done line.
 All inputs are connected to the inputs of the 8-bit multipliers with-in, with the A and B line being split as describe earlier. 
-The output consits of the result obtained by following equation \ref{eq:16bit_add} and the done line waiting for all four multiplier to have output on their done line.
-This simple combination of 7 components and few extra logic gates is also known as a 
+The output consist of the result obtained by following equation \ref{eq:16bit_add} and the done line waiting for all four multiplier to have output on their done line.
+An older version of the design also included two 8-bit registers to hold the result just as with the 8-bit design, however these were removed as they served no purpose.
+While in the 8-bit design the temporary value of the result is needed in calculation, this is not the case in the 16-bit design and there is no benefit in storing these values currently.
+If the 16-bit multiplier however made use of different clock cycles for each component having a final register in sync with the main clock would be beneficial.
 
-\subsection{Theory}
+After creating this design and researching for this report it was discovered that this simple combination of 7 components and few extra logic gates is also known as a Vedic multiplier \cite{vedic}.
+The method is based on a traditional ancient indian technique for fast multiplication and if often in used in digital signal processing due to this speed.
+While this design is faster it is more complex and takes up more space than other types of multipliers.
+
 \subsection{Test Bench}
+Extending the previous test bench from the 8-bit multiplier to this design was simple,
+as care was taken to ensure the 16-bit multiplier had the exact same inputs and outputs as the 8-bit multiplier.
+So the original code was extended to input all numbers from 0 to 255 on both ports and the same error count signal was used to aid with early debugging and verification.
+Initial testing showed errors at the 252, which is binary '11111100', this is also the first instance where the carry bit should be having an influence on the outcome.
+Using the error signal it was easy to find all the spots with problems and confirm indeed that the carry was an issue,
+then comparing the VHDL code to the design revealed that indeed the carry had not been connected properly.
+
+Another key note with this test bench as compared to the previous one is that execution time is far longer.
+While Vivado allowed  the default simulation time to be set to 20ms to allow all results to be simulated easily, 
+simulating this much took far longer than the previous simulations for 8-bit. 
+and this shows how comprehensive testing like will eventually cease to be an option once there are too many possible inputs to test and confirm them all.
+
 \subsection{Timing Analysis}
+Timing for this multiplier was simpler, as there are no synchronous elements introduced besides the 8-bit multiplier and the adders will complete well before the end of the clock cycle.
+Therefore the execution time is as long as the longest 8-bit multiplication and as discussed before the 8-bit multiplier is fully dependant on the A input for its timing with $F_{16}$.
+As the new longer A input is split into two, the worst case timing will now occur when either half is $F_{16}$, ie when $A = XF_{16}$ or $A = XF_{16}$ where $X$ is any hex digits regardless of B.
+This path can be seen measured in figure \ref{fig:8bit_worst} and is still 300ns or 15 clock cycles.
 
-\section{Conclusion}
+\begin{figure}[H]         
+    \centering
+    \includegraphics[width=\textwidth]{Logo.png}
+    \caption{16-Bit Multiplier Worst Case Execution Time}
+    \label{fig:8bit_worst}
+\end{figure} 
 
+The best case time is still when $A=00_{16}$ with 60ns.
+Average timing therefor also stands at 222.5ns.
+
+While the number of clock cycles required in this design cannot be reduced the length of each clock cycle can be.
+As timings were given for every single component the amount of time needed with-in each clock cycle to complete the longest possible operation can be calculated,
+this was attempted for this report and ultimately it was discovered that the clock could be taken all the way from 20ns to 3ns.
+This reduces the timings significantly however caution is required as these timings may work only in simulation and a more accurate timing report would need to considered the paths between component on the eventual silicon
+
+\section{Conclusion and Improvements}
+This report has covered the theory and testing of both a 8-bit and 16-bit multiplier design,
+touching on different design philosophies and the timing.
+These designs are of course not the only option for multipliers, in particular the 8-bit multiplier could make use of the the combinational design mentioned earlier.
+The combinational design however does not grantee results on a clock cycle as the current design does.
+Besides the aforementioned increases in clock timings there no other improvements to make on the 8-bit finite state machine design.
+For the 16-bit multiplier the main improvements consist of improving the 8-bit multiplier with-in, as the design is limited by those.
+Another improvement would be to replace the ripple adders with look ahead adders, which are more complex and larger but can speed up adding.
+These speed improvements however are useless unless the goal is also to reduce the clock lengths.
+
+\pagebreak
+\appendix
+\section{Python Code}
+\begin{lstlisting}
+    import math
+    total_num_clock = 0
+    
+    values = range(0,16)
+    num_clocks = []
+    
+    for value in values:
+        num_clock = 2 # From E to I
+        bin = f'{value:08b}'
+        print(bin)
+        for char in bin[::-1]:
+            num_clock += 1 # For C
+            if value == 0:
+                break
+            if char == '1':
+                num_clock += 1 # For A
+            value = math.floor(value/2)
+            num_clock += 1 # For S
+        print(num_clock)
+        total_num_clock += num_clock
+        num_clocks.append(num_clock)
+    
+    average_num_clock = total_num_clock / 16
+    print(average_num_clock)
+\end{lstlisting}
+
+\pagebreak
 \printbibliography
 
 \end{document}
