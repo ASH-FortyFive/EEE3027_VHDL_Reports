@@ -110,14 +110,14 @@ This basic theory will lead us to the combinational design in figure \ref{fig:mu
     \label{fig:mult_fa}
 \end{figure} 
 
-The multiplier achieves all the steps requires as can be seen moving colum to colum. 
-In the first colum multiplication occurs using AND gates.
-Then all the inputs get shifted over, as can be seen by the AND gates moving down and the diagonal lines for the A input followed by another multiply and add.
-This continues, ensuring the carry term also get forwarded appropriately until the output is achieved.
+The multiplier achieves all the steps previously described.
+Initially multiplication occurs using AND gates, then all the inputs get shifted over, as can be seen by the AND gates moving down and the diagonal lines for the A input.
+These multiplication are then added with new shifted over product from the next row down.
+This continues, ensuring the carry term also get forwarded appropriately, until the output is achieved.
 
 \subsubsection{State Machine Multiplier}
 
-For this assignment however this combinational design was not used, 
+For this assignment however the combinational design was not used, 
 instead a sequential style of multiplier was provided which is clocked and relies on a Moore state machine to control shifting and adding.
 Unlike in combinational circuits, which rely only on the current state of the input, sequential designs use feedback to store information about previous inputs\cite{dally}.
 In this case the given circuit is also synchronous meaning that any storage is linked to a clock to ensure all changes happen simultaneously and that races do not occur.
@@ -126,7 +126,7 @@ Figure \ref{fig:4bit_mult} shows this alternative multiplier design.
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.5\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{8bit.png}
     \caption{8-Bit Multiplier using State Machine}
     \label{fig:4bit_mult}
 \end{figure} 
@@ -142,54 +142,59 @@ One way to visualize a state machine is with a state diagram, such as the one in
 \end{figure} 
 
 Upon reset the state machine will always enter state E,
-this is also in fact the only asynchronous part of the design as this state change will happen as soon as the reset lines goes high while every other state change will only occur on the rising edge of the clock.
-In state E the state machine will output '1' on the Done line (any output not labeled as going to '1' is assumed to go to '0') which does not impact any of the other components and is in fact simply and output of the multiplier.
+this is the only asynchronous part of the design as this state change will happen as soon as the reset lines goes high while every other state change will only occur on the rising edge of the clock.
+In state E the state machine will output '1' on the Done line (any output not labeled as going to '1' is assumed to go to '0') which does not impact any of the other components and is instead an output of the multiplier.
 As shown in the diagram while in state E every clock the start signal is checked, as long as it it '0' the state machine remains in state E however once it is high it moves to state I.
-State I takes the Init line to '1', when tracing this line it can be seen that the following event will occur simultaneously: OR gate REGclr is given an input meaning the gate's output will go to '1' clearing the register of any previous values on the next rising edge.
-Note that this will also happen when the Reset line goes high as it connects to the other input of the OR gate. 
+
+State I takes the Init line to '1', when tracing this line shows that the following events will occur simultaneously: OR gate REGclr is given an input meaning the gate's output will go to '1' clearing the register of any previous values on the next rising edge.
+Note that this will also happens when the Reset line goes high as it connects to the other input of the OR gate. 
 The Init line also connects to the LD of both shift registers causing inputs A and B to load into shift registers SR1 and SR2 respectively on the next rising edge.
 Once in the I state the state machine will always transition to state C. 
+
 In state C the machine "checks" the value of shift register SR1,
-in particular if all the bits of SR1's output bus are zero (which is sent by the all zero detect Z1 into the stop line) as well as the value of the least significant bit (LSB).
+specifically it checks if all the bits of SR1's output bus are zero (which is sent by the all zero detect Z1 into the stop line) as well as the value of the shift registers least significant bit (LSB).
 If the LSB bit is '1' the state moves to the A state, otherwise the stop line is checked.
-When the stop line and LSB bit are '0' the S state is selected and finally if the stop line is '1' and the LSB is '0' the state returns to the E state.
-When in the A state the Add lines goes to '1', which will make the multiplexer M1 select the output of adder A1 instead of the current value of the register R1.
-R1 hold the output value meaning that when the Add line is '0' and M1 feed R1 back into R1 nothing will happen, however when R1 is high the output of A1 will be go into R1.
+When the stop line and LSB bit are '0' the S state is selected and if the stop line is '1' and the LSB is '0' the state returns to the E state.
+
+When in the A state the Add lines goes to '1', which will make the multiplexer M1 select the output of adder A1 instead of the output of register R1.
+R1 hold the output value meaning that when the Add line is '0' and M1 feed R1 back into R1 (causing no change), however when R1 is high the output of A1 will be go into R1.
 A1 adds the output of SR2 together with R1.
+
 State A will always transition to state S which takes the Shift line to '1', causing both SR1 and SR2 to shift with SR1 shifting right as DIR is taken low and SR2 shifting left as DIR is taken high.
 Then state S will transition to state C.
 
-These three states C, A, and S are the core of the multiplying operation and mirror the steps outlined earlier for multiplying binary numbers.
+These three states (C, A, and S) are the core of the multiplying operation and mirror the steps outlined earlier for multiplying binary numbers.
 Instead of directly multiplying two 4-bit numbers this state machine break the multiplication into multiple 4-bit by 1-bit multiplications.
 For any N-bit ($n$) by 1-bit ($b$) multiplication the following holds: $n \times b = n$ if $b = 1$ or $n \times b = 0$ if $b = 0$.
-So the way the state machine multiplies two multi-bit binary numbers $A$ and $B$ a shifted copy of $B$ is added for every position $A$ is 1\cite{dally}. 
-The shifts form state S will make the LSB the next bit of A and will shift up B at the same time.
-Once A is all zeros the state machines goes to the end state as no more adding is required. 
+So the way the state machine multiplies two multi-bit binary numbers ($A$ and $B$) is to a add a shifted copy of $B$ to the register for every position $A$ is 1\cite{dally}. 
+
+With the state machine and all other components now covered, the next stage of this assignment was to test and verify the 8-bit multiplier design.
 
 \subsection{Test Bench}
 The provided test bench code for the 8-bit multiplier was used with some minor changes and corrections.
 The initially provided code used SRA as a variable name which is invalid VHDL code as SRA is in the reserved list,
 this however is a simple fix as the variable can renamed throughout the test bench.
-In order to make the test bench more thorough the range of values investigated was increased to cover very possible 4-bit input (0 to 255) instead of the original limited range,
-this made finding errors more complicated however due to the large amount of values so another signal was added that keeps a running total of the amount of errors.
+In order to make the test bench more thorough the range of values investigated was increased to cover very possible 4-bit input (0 to 15) instead of the original limited range.
+This made finding errors more complicated however due to the large amount of values output so another signal was added that keeps a running total of the amount of errors.
 The error checking is done with an if statement that compares the product of the integer in the for loops to the output out multiplier,
 if the values do no match an error is logged and the error count in incremented. 
 Keeping track of errors helped during debugging to ensure that the multiplier functioned as expected. 
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.5\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{8bit_test.png}
     \caption{Test Bench of 8-Bit Multiplier}
     \label{fig:4bit_testbench}
 \end{figure} 
 
-Comprehensive testing ensures that the multiplier will work as expected in every single case
+Comprehensive testings such as this ensures that the multiplier will work as expected in every single case
+and indeed after the minor correction to the test bench this design past the test with no errors logged.
 
 \subsection{Timing Analysis}
 
 The worst case timing of the 8-bit multiplier can be found by delving into state machine. 
 This is because timing is dictated by the amount of clock cycles, with each full clock cycle being 20ns, and the state machine will dictated how many clock cycles multiplication takes.
-Referring to the diagram in figure \ref{fig:msm} the shortest journey occurs when the state go from $E \rightarrow I \rightarrow C \rightarrow E$, which occurs anytime A is $A = 0_{16}$ regardless of the value of B.
+Referring to the diagram in figure \ref{fig:msm} the shortest complete journey occurs when the state go from $E \rightarrow I \rightarrow C \rightarrow E$, which occurs anytime A is $A = 0_{16}$ regardless of the value of B.
 This would take only 60ns to from start input to done output.
 The longest journey will occur if the multiplier needs to add and shift for every single bit of A, ie when $A = F_{16}$, this is once again independent of the value of B.
 In this case it would go $E \rightarrow I \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow A \rightarrow S \rightarrow C \rightarrow E$.
@@ -197,7 +202,7 @@ This would take 300ns from start to done, which can be confirmed in simulation a
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{8bit_worst.png}
     \caption{Worst Case performance of 8-Bit Multiplier}
     \label{fig:4bit_worstcase}
 \end{figure} 
@@ -205,7 +210,7 @@ This would take 300ns from start to done, which can be confirmed in simulation a
 The average execution time can also be calculated based on the states given a uniform distribution of values of A. 
 While a mathematical proof is possible, for this report all possible values of A and the amount of clock cycles taken were simulated using python code (see appendix)
 which revealed the average number of clock cycles is 11.125, which would give an execution time, on average, of 222.5 ns.
-Below is a bar graph, figure \ref{fig:bar}, of all possible clock cycles times.
+Below is a bar graph, figure \ref{fig:bar}, of all possible clock cycles times per value of A.
 
 \begin{figure}[H]        
     \centering
@@ -221,7 +226,6 @@ These methods however go against some VHDL good practice (as well as against the
 as it is preferred to have smaller components that can be reused throughout a design.
 
 \subsection{Theory}
-
 
 For this assignment the 8-bit multiplier was used as a component, along side additional 8-bit adders. 
 This is because 16-bit multiplication can be described as four separate 8-bit multiplication.
@@ -383,7 +387,7 @@ With all of these steps a 16-bit Multiplier can be constructed out of four 8-bit
 
 \begin{figure}[H]         
     \centering
-    \includegraphics[width=\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{16bit.png}
     \caption{16-Bit Multiplier}
     \label{fig:8bit}
 \end{figure} 
@@ -421,7 +425,7 @@ This path can be seen measured in figure \ref{fig:8bit_worst} and is still 300ns
 
 \begin{figure}[H]         
     \centering
-    \includegraphics[width=\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{16bit_worst.png}
     \caption{16-Bit Multiplier Worst Case Execution Time}
     \label{fig:8bit_worst}
 \end{figure} 
