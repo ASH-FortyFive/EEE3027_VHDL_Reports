@@ -1,0 +1,172 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{blindtext}
+\usepackage{subcaption}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage[
+    backend=biber,
+    style=ieee
+]{biblatex}
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage{listings}
+
+\newcommand{\hlc}[2][yellow]{{%
+    \colorlet{foo}{#1}%
+    \sethlcolor{foo}\hl{#2}}%
+}
+
+
+\addbibresource{report.bib}
+
+\graphicspath{ {./images/} }
+
+\pagestyle{fancy}
+\fancyhead[C]{Report}
+\fancyhead[L]{EEE3027 Calculator Assignment}
+\fancyhead[R]{2nd of May}
+
+\cfoot{} % get rid of the page number 
+\fancyfoot[L]{6596386}
+\fancyhead[C]{}
+\fancyfoot[R]{\thepage}
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+    \includegraphics[width=\textwidth]{Logo.png} % also works with logo.pdf
+    \vfill
+    \Huge
+    \textbf{EEE3027: Calculator Assignment}
+    \vfill
+    \huge
+    Assignment Report\\
+    \vspace{1cm}
+    \Large
+    2nd of May 2023\\
+    URN: 6596386\\
+    \vfill
+    \vfill
+    \Large
+    Department of Electronic Engineering\\
+    Faculty of Engineering and Physical Sciences\\
+    University of Surrey\\
+    \end{center}
+\end{titlepage}
+
+\begin{abstract}
+This report covers the work done on creating and testing an FPGA Calculator in VHDL as part of EEE3027 Digital Design with VHDL.
+VHDL was used to program an FPGA capable of taking serial input,
+converting the serial input to numbers and operations,
+calculating the result,
+converting the result back into serial, 
+and finally transmitting the result back.
+The final design allows for a user to input, over serial, any integer between -32767 and 32767 (a signed 16-bit value) with the following integer operation : addition, subtraction, multiplication, and division. 
+The FPGA will then return the result if it can be represented as a signed 16-bit value, otherwise it will return an error. 
+The report also covers background theory for UART communication, an exploration of the original provided code, and a discussion on timing and physical implementation on a Minized Zynq board.
+\vspace{1cm}
+\end{abstract}
+\tableofcontents
+\pagebreak
+
+\section{Overview}
+
+The objectives of this assignment were to create an arithmetic calculator using the std.numeric library and provided UART code.
+This provided code first has to be debugged and tested.
+The calculators basic requirement was to compute values given in the "$A {+-*/} B$" format, with no specific instructions of the range of values of $A$, $B$ or the output.
+For the implementation created for this assignment the calculator is able to take inputs and provide outputs that can be described as signed 16-bit integers (ie between -32767 and 32767),
+however, through the use of generics this range can be changed.
+The serial UART input is then processed into the two expected numbers and operations, with any character that is not a numeral (0 to 9) or an operator character ($+-*/$) being ignored.
+At the end of the input a carriage return character (ASCII Hex code $0D$) is required to indicate the end of number $B$.
+A carriage return is also transmitted at the end of the calculator response with the result.
+Furthermore the final design will output a special character, "!", when an operation is invalid (such as dividing by zero) or the output is outside the calculators range.
+
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=\textwidth]{Logo.png}
+    \caption{Top Level Implementation of Calculator}
+    \label{fig:toplevel}
+\end{figure} 
+
+This achieve this functionality the design seen in figure \ref{fig:toplevel} was created, with four main components all interacting together.
+These components are the UART block, the ASCII decoder, the calculator, ASCII encoder.
+The UART block handles the receiving of serial UART data and converting it to parallel data as well as taking parallel data and sending it as serial UART.
+The ASCII decoder takes the parallel data, assuming they are ASCII codes, and converts into two numbers and a operation.
+The calculator computes operations between two numbers, the provides a result as well as a signal if the operation is invalid.
+THe ASCII encoder takes a result, as well the invalid signal, and converts them into a sequences of parallel ASCII codes that it sends to the UART block.
+Details on the design and operation of all of these components, as well information on testbenches and implementation on a Minized Zynq FPGA board are provided in
+
+
+\section{UART}
+\subsection{UART Theory}
+UART stands for universal asynchronous receiver-transmitter and is a very common device-to-to device communication protocol\cite{UART}.
+For this assignment a two-way UART connection is utilized,
+allowing two devices (the FPGA and a connected PC) to transfer data between each other regardless of clock rate as long as they communicate over a predefined rate know as the baud rate.
+Unlike other communication protocols such as SPI or I2C, UART only ever has one "master" device and one "slave" device a third device cannot be added on the same lines.
+
+UART takes parallel data and converts it into a bit by bit frame to send.
+The frame always start with the start bit, which takes the line low for one cycle as UART is normally high.
+then each data bit is sent one by one (least significant bit first) with a 1 being high and a zero being low.
+Some implementation will include a parity bit after the data, which will be 0 if the data total is odd and 1 is the total is even.
+Parity is useful to ensure that data been altered during transmission, which can occur due to "electromagnetic radiation, mismatched baud rates, or long-distance data transfers"\cite{UART}.
+The provided UART however does not utilize the parity bit.
+At the end of the message a stop bit is sent going from low to high.
+Equation \ref{eq:uart_sample} shows an example of how data gets converted to 
+
+\begin{align*}
+    \text{Data} &= 01000001
+    \stepcounter{equation}\tag{\theequation}\label{eq:uart_sample} \\
+    \text{UART Frame} &=    \overset{\text{Start Bit}}{\{0\}}
+                            \underset{\text{Data}}{\{1000 0010\}}
+                            \overset{\text{Stop Bit}}{\{1\}}\\
+\end{align*}
+
+
+The final key concept behind UART is the baud rate, which the rate of which information is transferred.
+In the case of UART baud rate represents how long each bit is held high or low.
+As UART is asynchronous, each device needs to know baud rate ahead of time and generate its own clock at the baud rate.
+This is enough to transmit UART as the line can simply be updated each clock cycle,
+however for receiving the line needs to be checked more often as the real line will often have non-instantaneous transition periods from high to low meaning that is best to check the signal in the middle of each cycle.
+To do this there is often a secondary oversampled clock, oven 16x, that is used in the receiver to check in the middle of each received by instead.
+Then when a start bit is received the receiver will wait for roughly half a baud
+
+\subsection{UART Component}
+
+
+
+\subsection{Test Bench}
+In order to test the UART module a simple test bench was created
+
+\section{Original Design}
+The original design, after correcting a few errors, did the following:
+
+\section{UART Calculator}
+This original design was heavily modified, with the original encoder being fully removed and the decoder being drastically changed, in order to meet the requirements for this assignment.
+Figure \ref{fig:toplevel} shows this modified design.
+As the UART components remains unchanged it will not be discussed again.
+The overall design has three inputs: the clock, a reset line and the uart in, and only one output: the uart out.
+Additionally there are four key generics: the clock rate, the baud rate, the maximum integer value, and the minimum integer value.
+The first two values are used only by the UART component so that the baud pulses can be generated properly,
+the integer range on the other will somewhat dynamically create version of the calculator cable of handling larger integers.
+In practice the limit is -32767 to 32767, larger values may work in simulation but timing constraints prevent them from being implemented on physical hardware.
+
+
+\subsection{ASCII Decoder}
+
+\subsection{Calculator}
+\subsection{ASCII Encoder}
+\subsubsection{Sender}
+
+\subsection{Test Bench}
+
+\section{Implementation}
+\subsection{Timing}
+
+\pagebreak
+\printbibliography
+
+\end{document}
