@@ -87,7 +87,7 @@ Furthermore the final design will output a special character, "!", when an opera
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{TopLevelImp.png}
     \caption{Top Level Implementation of Calculator}
     \label{fig:toplevel}
 \end{figure} 
@@ -132,9 +132,23 @@ As UART is asynchronous, each device needs to know baud rate ahead of time and g
 This is enough to transmit UART as the line can simply be updated each clock cycle,
 however for receiving the line needs to be checked more often as the real line will often have non-instantaneous transition periods from high to low meaning that is best to check the signal in the middle of each cycle.
 To do this there is often a secondary oversampled clock, oven 16x, that is used in the receiver to check in the middle of each received by instead.
-Then when a start bit is received the receiver will wait for roughly half a baud
+Then when a start bit is received the receiver will wait for roughly half a baud to sample the next bit.
+After this point the the receiver will wait 16 of the oversampled rates to take the next sample.
+Some implementations may take multiple samples around the midpoint to get a more accurate result, however this implementation takes only one measurement.
+Once enough measurements have been made, something else that needs to be predefined, the receiver will wait for the stop bit.
+
+This method of having both receiver and tramsitter creater their own baudrate means that communication occurs without a shared clocked, letting devices running at vastly different frequencies communicate.
+Ideally when each device will perfectly generate a clock for baud allowing for flawless communication even when the receiver and transmitter are completly out of phase (ie half a baud period apart), however real devices' baudrates are limited by the speed of their clock as well as the accuracy of thier clock.
+For example  
 
 \subsection{UART Component}
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=\textwidth]{uartImp.png}
+    \caption{UART Block Diagram}
+    \label{fig:UARTimp}
+\end{figure} 
+
 
 
 
@@ -156,12 +170,63 @@ In practice the limit is -32767 to 32767, larger values may work in simulation b
 
 
 \subsection{ASCII Decoder}
+% \begin{figure}[H]        
+%     \centering
+%     \includegraphics[width=\textwidth]{DecodeImp.png}
+%     \caption{ASCII Decoder Block Diagram}
+%     \label{fig:decoderimp}
+% \end{figure} 
+
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=.66\textwidth]{DecoderSM.drawio.png}
+    \caption{ASCII Decoder Mealy State Machine Diagram}
+    \label{fig:decodersm}
+\end{figure} 
+
 
 \subsection{Calculator}
+% \begin{figure}[H]        
+%     \centering
+%     \includegraphics[width=\textwidth]{CalcImp.png}
+%     \caption{Calculator Block Diagram}
+%     \label{fig:calcimp}
+% \end{figure} 
+
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=.66\textwidth]{CalculatorSM.drawio.png}
+    \caption{ASCII Calculator Mealy State Machine Diagram}
+    \label{fig:calcsm}
+\end{figure} 
+
 \subsection{ASCII Encoder}
+% \begin{figure}[H]        
+%    \centering
+%    \includegraphics[width=\textwidth]{EncodeImp.png}
+%    \caption{ASCII Encoder Block Diagram}
+%    \label{fig:encoderimp}
+% \end{figure} 
+
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=.66\textwidth]{EncoderSM.drawio.png}
+    \caption{ASCII Encoder Mealy State Machine Diagram}
+    \label{fig:encodersm}
+\end{figure} 
+
 \subsubsection{Sender}
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=.66\textwidth]{SenderSM.drawio.png}
+    \caption{ASCII Sender Mealy State Machine Diagram}
+    \label{fig:sendersm}
+\end{figure} 
+
 
 \subsection{Test Bench}
+YOOOO
+
 
 \section{Implementation}
 \subsection{Timing}
