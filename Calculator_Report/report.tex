@@ -170,12 +170,19 @@ In practice the limit is -32767 to 32767, larger values may work in simulation b
 
 
 \subsection{ASCII Decoder}
-% \begin{figure}[H]        
-%     \centering
-%     \includegraphics[width=\textwidth]{DecodeImp.png}
-%     \caption{ASCII Decoder Block Diagram}
-%     \label{fig:decoderimp}
-% \end{figure} 
+
+% Upon receiving a UART message the receiver will send a ready signal as well as a parallel bus with the data,
+% for this calculator it is assumed that these messages contain ASCII characters.
+To do any calculating the inputted ASCII character, converted from serial to parallel in the receiver, need to be converted into two numbers, which will be referred to as A and B, and an operation.
+This is done in the ASCII decoder which start by taking the incoming parallel data and "decoding" it.
+THis is done in the decoder, which treats the parallel data as an unsigned integer and check wether the data is between the range of 48 to 71, the range of numerals 0 to 9.
+If so the data outputs a signal labeling the message as a numeral (a custom type created for the calculator) and also output the numeral as an 4-bit numbers (by subtracting 48 from the incoming data).
+Otherwise the decoder checks for operations, $+-*/$, which are ascii codes 43, 45, 42, and 57.
+If these are detected a signal is output labeling the incoming data as an operator (the same custom type as before) as well as another custom type labeling the specific operator.
+The final ASCII character that is checked for is number 13, which is carriage return.
+For this design carriage return is used to signify the end of a message.
+With any valid message the decoder will also output a character ready signal for the state machine.
+If the message is any other value it is simply ignored meaning that an inputs of $-AB1cs 2 + 3 hh4$ will be treated as $-12+34$.
 
 \begin{figure}[H]        
     \centering
@@ -184,14 +191,34 @@ In practice the limit is -32767 to 32767, larger values may work in simulation b
     \label{fig:decodersm}
 \end{figure} 
 
+Now that the incoming data is understood by the decoder the single numerals and operator need to be interpreted properly, this is done with the state machine in figure \ref{fig:decodersm}.
+The state machine will check for its transition conditions anytime any of the inputs change. 
+In its initial state, Wait for A, it will wait to receive either valid numeral or the negative operator. 
+With the latter the SM will mark the upcoming value as negative, this can occur multiple times meaning that $---1$ will be correctly interpreter as $-1$.
+Once a number is received it will be sent to the digit to number converter and the state machine will transition to the Receiving A state. 
+In this state the machine checks for new numerals, which will be sent to the converter, and any operation which will mark the end of number A.
+This operation will be loaded into a register before the state transitions to the Waiting for B state.
+The Waiting for B and Receiving B state mirror the A states, however instead of looking for an operation to mark the end of number B the carriage return is awaited.
+The digit to number converter stores the current value, which starts at 0, and upon receiving a new number will multiple the current value by 10 then add the new number. 
+\textbf{DOES OVERFLOW CHECKING NEED TO BE ADDED (YES)} 
+This new value is then turned if the state machine outputs the negative signal and output to both the A and B registers.
+The registers however will only load when the state machine outputs the load A or load B signal at the end of Receiving A and Receiving B states,
+these load signals will also clear the converter's current value to allow it to convert the next series of numerals.
+Finally when the state machine moves from Receiving B back to Waiting for A it will output a ready signal, indicating that register A, B, and Op contain all the data that needs to be computed.
 
+To achieve this conversion the numeric STD library is utilized both in the decoder with the ASCII data and in the converter turning numerals into larger integers.
+%As mentioned maximum size of the incoming integers can be altered with generics, however for the final presented implementation signed 16-bit integers were used.
 \subsection{Calculator}
-% \begin{figure}[H]        
-%     \centering
-%     \includegraphics[width=\textwidth]{CalcImp.png}
-%     \caption{Calculator Block Diagram}
-%     \label{fig:calcimp}
-% \end{figure} 
+
+Despite describing this project as a calculator, the calculating component is one of the simplest.
+This is due to heavy usage of the numeric STD library which implements the logic required for adding, subtracting, multiplying, and dividing integers.
+Furthermore as UART communication is orders of magnitude slower than the clock frequency (115.2 kHz vs 50 MHz)
+the speed of even the slowest calculations appears near instant compared to communication (this can be seen on the simulation graph in figure \ref{fig:sim}).
+
+The calculator takes in 2 integers, an operation and ready signal as an input, which it uses to produce a result integer as well as a signal indicating that the calculator is done and a signal indicating an invalid operations, specially dividing by zero or exceeding the signed integer limit.
+The current implementation of the calculator is state machine driven, see figure \ref{fig:calcsm}. 
+Upon being informed that the data and operation is ready in the registers the machine will send a start signal to the approptatei sub-module for each operations.
+Then it will wait for the component to send a ready signal at which point the calculator will forward the result and invalid line from the sub-module to the next component along with a done signal.
 
 \begin{figure}[H]        
     \centering
@@ -200,7 +227,22 @@ In practice the limit is -32767 to 32767, larger values may work in simulation b
     \label{fig:calcsm}
 \end{figure} 
 
+Each of the sub-modules are similar in design, awaiting a start signal which will trigger the operation to begin.
+Before and after the operation some error checking is done,
+this checking is specific to each modules with the divider checking for divide by zero errors and the other checking if the new output is below the minimum value or above the maximum value.
+Once the result is done, valid or invalid, the sub-module will output a done signal.
+
+This approach is rather space inefficient, as each module is independent and shares no components with other components.
+As two operations will never occur simultaneously this could be made more efficient,
+but the current design is simpler and allows for easy expansion such as adding a exponent function.
+
 \subsection{ASCII Encoder}
+
+Once an integer result is calculated it needs to be converted back into a series ASCII characters and sent out one by one to the UART transmitter.
+This is done in the ASCII Encoder and Sender.
+This components takes in the signed 16-bit integer results and a done signal from the calculator, and the transmitter's ready signal.
+These two stages happen sequentially meaning that a simple state machine is used to control the encoder, shown in figure \ref{fig:encodersm}
+
 % \begin{figure}[H]        
 %    \centering
 %    \includegraphics[width=\textwidth]{EncodeImp.png}
@@ -215,6 +257,19 @@ In practice the limit is -32767 to 32767, larger values may work in simulation b
     \label{fig:encodersm}
 \end{figure} 
 
+When the result is ready the state will transition to converting if the result is valid or go straight to sending if the result is invalid.
+Converting from numbers back to digits is a little bit more challenging than the inverse as rather than storing one number multiple numerals need to be stored.
+To achieve this there are enough registers to store every digits of the largest possible numbers,
+this is done automatically using a log10 and ceiling function at synthesis.
+In the case of the signed 16-bit number the largest value is 32767, so 5 registers are required.
+The loading of these register is achieved using number to digit converter and a counter.
+The converter starts by taking the remainder of result where it divided by ten and then dividing the result by 10.
+This remainder is then stored in the register with the index of the counters output. 
+Finally if the newly divided result can be divided by 10 again, and not be zero, the counter is incremented and the process starts again.
+Following this process means that any number will have its digits stored in the registers, as 4-bit values, with the counter pointing at the highest order term.
+This process is identical for both negative and positive values, as the only difference will be wether a negative sign is sent, which will be handled by the sender.
+Once this is done a ready signal is sent and the overall state machine will move to the sender.
+
 \subsubsection{Sender}
 \begin{figure}[H]        
     \centering
@@ -223,12 +278,49 @@ In practice the limit is -32767 to 32767, larger values may work in simulation b
     \label{fig:sendersm}
 \end{figure} 
 
+The sender sub-component start after the number has been converted to digits, or immediately upon receiving an invalid number. 
+It however shares the digit registers and counters as it will use them for the transmitting.
+The sender operators using the state machine in figure \ref{fig:sendersm} as well as an ascii converter which will take numerals and convert them to 8-bit ASCII characters.
+Once the data and the transmitter are ready the state machine will send a value, which is a somewhat complicated operation,
+then it will wait for the transmitter to be ready either to send the next numeral or, if there is no more data left, it will wait for the carriage return signal to be sent before retuning to idle
+The send operation does the following: firstly if the number is negative it will tell the converter to output the ASCII code for a negative sign, number 45, then mark the fact a negative has been sent to avoid repeating this.
+Next it will send the numeral to the converter, which will add 48 to the number to make it the ASCII code, and then checks if the counter is at zero.
+If the counter is already at zero, it means the number is done sending which is sorted as a variable, otherwise the counter is simply decremented by one.
+The exception to all this is if the invalid result input is given, in this case the sender will tell the converter to output the invalid result character (! or ASCII 33) and the end of data variable is set to true.
+Then on the final send, when the end of data is true it will tell the converter to output a carriage return and then signal to the state machine that the message is done.
+This is the slowest of the components, as for each send a full UART message needs to be sent which is far slower than the clock.
 
 \subsection{Test Bench}
-YOOOO
+
+The test bench for simulating the full calculator is identical to the test bench for the UART components.
+Once more the test bench creates an instance of the top level implementation in figure \ref{fig:toplevel}
+and then creates a second UART components with its own clock to transmit the input and decode the output.
+The data for the transmitter is once more a loop that goes through a file with hex codes that will be sent as soon as the transmitter is ready.
+
+Various files were then created to test various scenarios such as dividing by zero and going over the limit.
+Figure \ref{fig:sim} shows the calculator computing 1 + 1.
+As can be seen in this figure most of the time is spend on receiving and sending, both of which take \textbf{!!!} ns.
+Meanwhile calculating form receiving the carriage return to the start of sending the result takes only \textbf{!!!} ns.
+
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=\textwidth]{Logo.png}
+    \caption{Simulation of 1 + 1}
+    \label{fig:sim}
+\end{figure} 
+
+Unlike the multipler before testing all possible inputs is near impossible, as there are $2^{16}$ possible values for A and B, along side for operations meaning that there are $2^{34}$ valid inputs.
+This does not including testing more inputs such as injecting random charchater or using more negative signs than nessecary.
+
+Therefor testing was done by \textbf{WE DO NOT HAVE A TESTING STATEGY}
 
 
 \section{Implementation}
+
+Taking the calculator from design to running on physical hardware posed various challengs.
+Firstly was converting all the design to work nicly with-in the provided code for implmentation, such as setting up the proper connections and getting rid of the now obsolete DIP switch connection.
+After this various timing issues created problems for the design, all of which were flagged by Vivado. 
+
 \subsection{Timing}
 
 \pagebreak
