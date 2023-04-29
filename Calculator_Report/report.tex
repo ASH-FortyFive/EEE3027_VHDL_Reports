@@ -4,7 +4,7 @@
 \usepackage{float}
 \usepackage{blindtext}
 \usepackage{subcaption}
-\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage[a4paper,width=180mm,top=22mm,bottom=22mm]{geometry}
 \usepackage{fancyhdr}
 \usepackage{longtable}
 \usepackage[
@@ -58,6 +58,7 @@
     \end{center}
 \end{titlepage}
 
+\pagenumbering{Roman}
 \begin{abstract}
 This report covers the work done on creating and testing an FPGA Calculator in VHDL as part of EEE3027 Digital Design with VHDL.
 VHDL was used to program an FPGA capable of taking serial input,
@@ -65,7 +66,7 @@ converting the serial input to numbers and operations,
 calculating the result,
 converting the result back into serial, 
 and finally transmitting the result back.
-The final design allows for a user to input, over serial, any integer between -32767 and 32767 (a signed 16-bit value) with the following integer operation : addition, subtraction, multiplication, and division. 
+The final design allows for a user to input, over serial, any integer between -32767 and 32767 (a signed 16-bit value) with the following integer operations: addition, subtraction, multiplication, and division. 
 The FPGA will then return the result if it can be represented as a signed 16-bit value, otherwise it will return an error. 
 The report also covers background theory for UART communication, an exploration of the original provided code, and a discussion on timing and physical implementation on a Minized Zynq board.
 \vspace{1cm}
@@ -73,17 +74,19 @@ The report also covers background theory for UART communication, an exploration 
 \tableofcontents
 \pagebreak
 
+\pagenumbering{arabic}
 \section{Overview}
 
-The objectives of this assignment were to create an arithmetic calculator using the std.numeric library and provided UART code.
+The objectives of this assignment were to create an arithmetic calculator using the std.numeric library and the provided UART code.
 This provided code first has to be debugged and tested.
-The calculators basic requirement was to compute values given in the "$A {+-*/} B$" format, with no specific instructions of the range of values of $A$, $B$ or the output.
-For the implementation created for this assignment the calculator is able to take inputs and provide outputs that can be described as signed 16-bit integers (ie between -32767 and 32767),
-however, through the use of generics this range can be changed.
+The calculator's basic requirement was to compute values given in the "$A {+-*/} B$" format, with no specific instructions of the range of values of $A$, $B$ or the output.
+For the implementation created for this assignment, the calculator can take any input and provide any output that can be described as signed 16-bit integers (ie, between -32767 and 32767),
+however, through the use of generics, this range can be changed.
 The serial UART input is then processed into the two expected numbers and operations, with any character that is not a numeral (0 to 9) or an operator character ($+-*/$) being ignored.
-At the end of the input a carriage return character (ASCII Hex code $0D$) is required to indicate the end of number $B$.
-A carriage return is also transmitted at the end of the calculator response with the result.
-Furthermore the final design will output a special character, "!", when an operation is invalid (such as dividing by zero) or the output is outside the calculators range.
+When any value is received, it will be echoed back via the transmitter.
+At the end of the input, a carriage return character (ASCII Hex code $0D$) is required to indicate the end of the number $B$.
+A carriage return is also transmitted after the result's final digit.
+Furthermore, the final design outputs a special character, "!", when an operation is invalid (such as dividing by zero), or the output is outside the calculator's range.
 
 \begin{figure}[H]        
     \centering
@@ -92,30 +95,35 @@ Furthermore the final design will output a special character, "!", when an opera
     \label{fig:toplevel}
 \end{figure} 
 
-To achieve this functionality the design seen in figure \ref{fig:toplevel} was created, with four main components all interacting together.
-These components are the UART block, the ASCII decoder, the calculator, ASCII encoder.
-The UART block handles the receiving of serial UART data and converting it to parallel data as well as taking parallel data and sending it as serial UART.
-The ASCII decoder takes the parallel data, assuming they are ASCII codes, and converts into two numbers and a operation.
-The calculator computes operations between two numbers, the provides a result as well as a signal if the operation is invalid.
-THe ASCII encoder takes a result, as well the invalid signal, and converts them into a sequences of parallel ASCII codes that it sends to the UART block.
-Details on the design and operation of all of these components, as well information on testbenches and implementation on a Minized Zynq FPGA board are provided in
+To achieve this functionality, the design seen in figure \ref{fig:toplevel} was created.
+This design shows four main components all interacting together.
+These components are the UART block, the ASCII decoder, the calculator, and the ASCII encoder.
+The UART block handles the receiving of serial UART data, converting it to a byte of parallel data as well as taking in parallel data and transmitting it as serial UART data.
+Anytime a full byte comes into the UART block's receiver, it will echo that byte back via the transmitter.
+The ASCII decoder takes parallel data and then, upon receiving valid ASCII codes, converts sequences of parallel data into two numbers and an operation.
+The calculator computes an operation between two numbers and then provides a result.
+It also has error checking and will signal if the operation is invalid.
+The ASCII encoder takes an integer and the invalid signal and converts that information into a sequence of parallel ASCII codes.
+Once converted, the codes are sent to the UART block's transmitter.
+Details on the design and operation of all of these components as well as information on test benches and implementation on a Minized Zynq FPGA board are provided in this report.
 
 
 \section{UART}
 \subsection{UART Theory}
-UART stands for universal asynchronous receiver-transmitter and is a very common device-to-to device communication protocol\cite{UART}.
-For this assignment a two-way UART connection is utilized,
-allowing two devices (the FPGA and a connected PC) to transfer data between each other regardless of clock rate as long as they communicate over a predefined rate know as the baud rate.
-Unlike other communication protocols such as SPI or I2C, UART only ever has one "master" device and one "slave" device a third device cannot be added on the same lines.
+UART stands for universal asynchronous receiver-transmitter and is a very common device-to-device communication protocol\cite{UART}.
+For this assignment, a two-way UART connection is utilized,
+allowing two devices (the FPGA and a connected PC) to transfer data between each other regardless of clock rate as long as they communicate over a predefined rate known as the baud rate.
+Unlike other communication protocols such as SPI or I2C, UART only ever has one "master" device and one "slave" device. \
+A third device can never be added on the same lines.
 
-UART takes parallel data and converts it into a bit by bit frame to send.
-The frame always start with the start bit, which takes the line low for one cycle as UART is normally high.
-then each data bit is sent one by one (least significant bit first) with a 1 being high and a zero being low.
-Some implementation will include a parity bit after the data, which will be 0 if the data total is odd and 1 is the total is even.
-Parity is useful to ensure that data been altered during transmission, which can occur due to "electromagnetic radiation, mismatched baud rates, or long-distance data transfers"\cite{UART}.
-The provided UART however does not utilize the parity bit.
-At the end of the message a stop bit is sent going from low to high.
-Equation \ref{eq:uart_sample} shows an example of how data gets converted to 
+UART takes parallel data and converts it into a bit-by-bit frame to send.
+The frame always starts with the start bit, which takes the line low for one cycle, as a UART line is usually high.
+AFter this, each data bit is sent one by one (least significant bit first), with a one being high and a zero being low.
+Some implementations will include a parity bit after the data, which will be zero if the data total is odd and one if the total is even.
+Parity is helpful to ensure that data has not been altered during transmission, which can occur due to "electromagnetic radiation, mismatched baud rates, or long-distance data transfers"\cite{UART}.
+The provided UART, however, does not utilize the parity bit.
+At the end of the message, a stop bit is sent by asserting from low to high.
+Equation \ref{eq:uart_sample} shows an example of how data gets converted to a UART packet.
 
 \begin{align*}
     \text{Data} &= 01000001
@@ -126,16 +134,17 @@ Equation \ref{eq:uart_sample} shows an example of how data gets converted to
 \end{align*}
 
 
-The final key concept behind UART is the baud rate, which the number of signals per second.
-In the case of UART baud rate represents how long each bit is held high or low.
-As UART is asynchronous, each device needs to know baud rate ahead of time and generate its own clock at the baud rate.
-This is enough to transmit UART as the line can simply be updated each clock cycle,
-however for receiving the line needs to be checked more often as the devices baud clocks can be out of phase by half a period and because reals signal have non-instantaneous transition periods from high to low meaning that is best to check the signal in the middle of each cycle.
-To do this there is a secondary oversampled clock, oven 16x, that is used in the receiver to check in the middle of each received by instead.
-Then when a start bit is received the receiver will wait for roughly half a baud to sample the next bit.
-After this point the the receiver will wait 16 of the oversampled rates to take the next sample.
-Some implementations may take multiple samples around the midpoint to get a more accurate result, however this implementation takes only one measurement.
-Once enough measurements have been made, something else that needs to be predefined, the receiver will wait for the stop bit.
+The final key concept behind UART is the baud rate, which is the number of signals per second.
+The UART baud rate represents how long each bit is held high or low.
+As UART is asynchronous, each device needs to know the baud rate ahead of time and generate its clock at the baud rate.
+This is enough to transmit UART as the serial output line only needs to be updated once each clock cycle,
+however for receiving, the line needs to be checked more often as the devices baud clocks can be out of phase by half a period and because real signals have non-instantaneous transition periods from high to low meaning that is best to check the signal in the middle of each cycle.
+To achieve this, there is a secondary oversampled clock, often by a factor of 16.
+This oversampled clock is used in the receiver to check the line in the middle of each received bit instead.
+This is done by waiting for half a baud rate after a start bit is received to sample the next bit.
+After this point, the receiver will wait 16 of the oversampled rates to take the following sample.
+Some implementations may take multiple samples around the midpoint to get a more accurate result; this implementation takes only one measurement.
+Once enough measurements have been made; the receiver will wait for the stop bit before asserting high on the ready line with the data ready on 8 parallel lines.
 
 % This method of having both receiver and transmitter create their own baud clock means that communication occurs without a shared clocked, letting devices running at vastly different frequencies communicate.
 % Ideally when each device will perfectly generate a clock for baud allowing for flawless communication even when the receiver and transmitter are completly out of phase (ie half a baud period apart), however the baud rates a device can support are limited by its own clock.
@@ -151,53 +160,82 @@ Once enough measurements have been made, something else that needs to be predefi
     \label{fig:UARTimp}
 \end{figure} 
 
-Provided with the assignment was the VHDL code for a UART transmitter and receiver. 
-This code required a few corrections to get in working order. 
+The VHDL code for a UART block used in this assignment was provided. 
+A few corrections were required to get the code in working order. 
 The simpler of the fixes was that all files required the addition of the IEEE std\_logic\_1164 library. 
-Testing also revealed that the UART receiver was not connected to the baudRateEnable\_x16 line which was quickly fixed in the port map.
-The baud rate generator also had the incrementing of its baud counts moved with-in the if statements to avoid incrementing the variable and then instantly setting it to zero, in order to keep this from breaking the timing the check for completion was also altered.
-With the fixes the components functioned as expected.
+Testing also revealed that the UART receiver was not connected to the baudRateEnable\_x16 line, which was quickly fixed in the port map.
+With these fixes, the components functioned as expected.
 
-This means that the baud rate generator given a clock line and predefined with the clock frequency and desired baud rate will produce two outputs: a pulse at the baud rate and a pulse at 16 times the baud rate which connect to the transmitter and receiver respectively.
-It does this by counting an the number of clock cycles and sending a pulse every x cycles and resetting the count, where x is the clock rate over the baud rate.
-The baud rate transmitter takes five inputs, a clock, a reset, baud pulses, a transmit request and an 8-bit bus for the output date.
-Every clock cycle it will check if the transmit request is high, once it is it will begin to send a UART message including start and stop bit containing the data that was on 8-bit bus when the transmits request was received.
-This operation is achieved using a finite state machine, a diagram for which can be seen in figure \ref{fig:transmitsm}
+The baud rate generator, once given a clock line, a predefined clock frequency, and a baud rate, will produce two outputs: a pulse at the baud rate and a pulse at 16 times the baud rate, which connect to the transmitter and receiver respectively.
+It does this by counting the number of clock cycles and sending a pulse every x cycles.
+Where x is the clock rate over the baud rate for the main pulse and one-sixteenth of that number for the oversampled pulse.
+This method means that the actual baud rate has a resolution limited by the clock rate.
+
+The baud rate transmitter takes five inputs: a clock, a reset, baud pulses, and a transmit request line, as well as an 8-bit bus for the input data.
+Every clock cycle, the transmitter checks if the transmit request is high.
+Once it is high, the transmitter sends a UART message, including the start and stop bit, containing the data on the parallel input of the UART block.
+This operation is achieved using a finite state machine, a diagram for which can be seen in figure \ref{fig:transmitsm}  
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{DecoderSM.drawio.png}
+    \includegraphics[width=.66\textwidth]{TransmitterSM.drawio.png}
     \caption{UART Transmitter State Machine Diagram}
     \label{fig:transmitsm}
 \end{figure} 
 
-This diagram shows all the states, transitions and condition for transitions, as well as the outputs in those states and transitions. 
-As the output depends both on the states and inputs, this is known as a Mealy state machine.
-The $=$ sign indicates a conditions, with $<=$ being used when signals are set and $:=$ when variables are being set, this format will be used throughout the report.
-Note that for this component the transition will occur only on the rising edge of baud pulses, not during the rising edge of clocks. 
-The exception to this is the transmit request, which is monitored on clock rising edge and is essentially stored in a buffer as "go".
-With the state machine the component will send out valid UART messages
+This diagram shows all the states, transitions, and conditions for transitions.
+The outputs in each of those states and transitions are also shown. 
+As the output depends on the states and inputs, this is known as a Mealy state machine.
+The $=$ sign indicates a condition, with $<=$ being used when signals are set and $:=$ when variables are being set. 
+This format is used throughout the report.
+Note that for this component, the transition will occur only on the rising edge of baud pulses, not during the rising edge of clocks. 
+The exception is the transmit request, which is monitored on the clock rising edge and stored in a buffer as go.
 
 The UART receiver takes in only a clock, a reset, and the oversampled baud pulses.
-As an output it will give an 8-bit bus of data and a signal when the data is ready.
-This operation is once more achieved with a state machine, seen in figure \ref{fig:receivesm}
+As an output, it will give 8 bits of parallel data and a signal when the data is ready.
+This operation is also achieved with a state machine, seen in figure \ref{fig:receivesm}
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{DecoderSM.drawio.png}
+    \includegraphics[width=.66\textwidth]{ReceiverSM.drawio.png}
     \caption{UART Receiver State Machine Diagram}
     \label{fig:receivesm}
 \end{figure} 
 
-The core operation is similar, however as mentioned during the theory discussed the receiver makes use of a 16 times oversampled baud rate in order to take samples in the middle of data.
-To achieve this the state machine transitions are triggered somewhat differently,
-whenever the internal "countLoad" signal goes high the receiver will start counting up on a signal called "countValue" every oversampled baud rate and then often this count value will be used to govern what action the state machine takes next.
+The core operation is similar; however, as mentioned in the theory discussion, the receiver uses a 16 times oversampled baud rate to take samples in the middle of each incoming bit.
+The receiver keeps an internal count of the amount of oversampled pulses receiver after the start bit is detected in order to take a sample in the middle of each bit,
+Once this count is at 7, or roughly halfway into the start bit, the receiver measures to ensure the start bit was indeed received.
+If the start bit is correctly detected at this measurement, the receiver will wait for another 16 counts to measure in the middle of the first bit, and it will continue doing this until the stop bit is detected.
 
 \subsection{Test Bench}
-In order to test the UART module a simple test bench was created
+To test the UART module, a test bench was created with the two instances of the UART module.
+The transmitter in the first UART module (UUT\_1) was given parallel data from a text file.
+The text file contains hex codes, and the test bench will send them one by one to the transmitter, waiting each time for the transmitter's ready line to go high first.
+The serial output from this transmitter is then sent to the serial input of the receiver in UUT\_2, whose output is then compared to the value read from the file to confirm everything is working.
+Using the modules like this allowed for testing the operability of the module with different clock rates very quickly, as the baud rate generators of UUT\_1 and UUT\_2 could easily be connected to clocks with different clock rates. 
+This testing confirmed that transmission and reception of every 8-bit value work correctly after creating an input file with hex values $0x00$ to $0xFF$. 
+Testing was repeated at different clock rates for both the receiver and transmitter (1.8432 MHz, 8 MHz, 20 Mhz, 50 Mhz), which all functioned in simulation.
+Some of these values, however, are unlikely to work with actual clocks as they would need to be extremely accurate clocks to generate acceptable baud pulses. 
 
 \section{Original Design}
-The original design, after correcting a few errors, did the following:
+Once the UART was tested, the remainder of the original top-level design, after correcting a few errors, was investigated.
+This original design would take in any serial inputs, convert them with the receiver, and check for three special cases in the decoder:
+if the data is between $0x61$ to $0x7A$ (a lowercase letter), 
+if the data is between $0x41$ to $0x5A$ (an uppercase letter), 
+or if the data is between $0x31$ to $0x39$ (a numeral).
+For lowercase letters, the decoder will subtract 32 before sending the value on, converting them to uppercase.
+For uppercase letters, the decoder will add 32 before sending, converting them into lowercase.
+For every other case, including numerals, the data would be sent unaltered.
+The LEDs are also controlled by these special cases.
+When a letter is decoded, the lo\_LED will go high, and the hi\_LED will go low.
+When a numeral is decoded,  the lo\_LED will go low, and the hi\_LED will go high.
+In all other cases, both LEDs will go high.
+
+The decoder's data then goes to the encoder, which will send the character from the decoder to the UART block's transmitter if one is received.
+Otherwise, it will send a character based on the DIP switches.
+These switches, however, are now obsolete along with the debouncers connected to them as the new FPGA board does not support them.
+They used to serve to pick the value sent by the transmitter when the receiver received no new character.
+
 
 \section{UART Calculator}
 This original design was heavily modified, with the original encoder being fully removed and the decoder being drastically changed, in order to meet the requirements for this assignment.
@@ -206,14 +244,12 @@ As the UART components remains unchanged it will not be discussed again.
 The overall design has three inputs: the clock, a reset line and the UART in, and only one output: the UART out.
 Additionally there are four key generics: the clock rate, the baud rate, the maximum integer value, and the minimum integer value.
 The first two values are used only by the UART component so that the baud pulses can be generated properly,
-the integer range on the other will somewhat dynamically create version of the calculator cable of handling larger integers.
-In practice the limit is -32767 to 32767, larger values may work in simulation but timing constraints prevent them from being implemented on physical hardware.
+the integer range on the other will dynamically create version of the calculator cable of handling larger integers.
+In practice the limit is -32768 to 32767 (a 16-bit signed integer), this is because the methods used to create different size calculator rely on using a loop during synthesis and Vivado limits loops to $2^{16}$.
 
 
 \subsection{ASCII Decoder}
 
-% Upon receiving a UART message the receiver will send a ready signal as well as a parallel bus with the data,
-% for this calculator it is assumed that these messages contain ASCII characters.
 To do any calculating the inputted ASCII character, converted from serial to parallel in the receiver, need to be converted into two numbers, which will be referred to as A and B, and an operation.
 This is done in the ASCII decoder which start by taking the incoming parallel data and "decoding" it.
 THis is done in the decoder, which treats the parallel data as an unsigned integer and check wether the data is between the range of 48 to 71, the range of numerals 0 to 9.
@@ -221,7 +257,7 @@ If so the data outputs a signal labeling the message as a numeral (a custom type
 Otherwise the decoder checks for operations, $+-*/$, which are ascii codes 43, 45, 42, and 57.
 If these are detected a signal is output labeling the incoming data as an operator (the same custom type as before) as well as another custom type labeling the specific operator.
 The final ASCII character that is checked for is number 13, which is carriage return.
-For this design carriage return is used to signify the end of a message.
+For this design, a carriage return is used to signify the end of a message.
 With any valid message the decoder will also output a character ready signal for the state machine.
 If the message is any other value it is simply ignored meaning that an inputs of $-AB1cs 2 + 3 hh4$ will be treated as $-12+34$.
 
@@ -238,17 +274,15 @@ In its initial state, Wait for A, it will wait to receive either valid numeral o
 With the latter the SM will mark the upcoming value as negative, this can occur multiple times meaning that $---1$ will be correctly interpreter as $-1$.
 Once a number is received it will be sent to the digit to number converter and the state machine will transition to the Receiving A state. 
 In this state the machine checks for new numerals, which will be sent to the converter, and any operation which will mark the end of number A.
-This operation will be loaded into a register before the state transitions to the Waiting for B state.
+This operation will be loaded into register A before the state transitions to the Waiting for B state.
 The Waiting for B and Receiving B state mirror the A states, however instead of looking for an operation to mark the end of number B the carriage return is awaited.
-The digit to number converter stores the current value, which starts at 0, and upon receiving a new number will multiple the current value by 10 then add the new number. 
-\textbf{DOES OVERFLOW CHECKING NEED TO BE ADDED (YES)} 
-This new value is then turned if the state machine outputs the negative signal and output to both the A and B registers.
+In both cases the digit to number converter works by storing the current value, which starts at 0, and upon receiving a new number multiplying the current value by 10 then add the new number. 
+This new value is then turned negative if the state machine outputs the negative signal and this output is connect to both the A and B registers.
 The registers however will only load when the state machine outputs the load A or load B signal at the end of Receiving A and Receiving B states,
 these load signals will also clear the converter's current value to allow it to convert the next series of numerals.
 Finally when the state machine moves from Receiving B back to Waiting for A it will output a ready signal, indicating that register A, B, and Op contain all the data that needs to be computed.
 
-To achieve this conversion the numeric STD library is utilized both in the decoder with the ASCII data and in the converter turning numerals into larger integers.
-%As mentioned maximum size of the incoming integers can be altered with generics, however for the final presented implementation signed 16-bit integers were used.
+To achieve this conversion the numeric STD library is utilized both in the decoder with the ASCII data and in the digit to number converter turning numerals into larger integers.
 \subsection{Calculator}
 
 Despite describing this project as a calculator, the calculating component is one of the simplest.
@@ -258,7 +292,7 @@ the speed of even the slowest calculations appears near instant compared to comm
 
 The calculator takes in 2 integers, an operation and ready signal as an input, which it uses to produce a result integer as well as a signal indicating that the calculator is done and a signal indicating an invalid operations, specially dividing by zero or exceeding the signed integer limit.
 The current implementation of the calculator is state machine driven, see figure \ref{fig:calcsm}. 
-Upon being informed that the data and operation is ready in the registers the machine will send a start signal to the approptatei sub-module for each operations.
+Upon being informed that the data and operation is ready in the registers the machine will send a start signal to the appropriate sub-module for each operations.
 Then it will wait for the component to send a ready signal at which point the calculator will forward the result and invalid line from the sub-module to the next component along with a done signal.
 
 \begin{figure}[H]        
@@ -340,29 +374,42 @@ The data for the transmitter is once more a loop that goes through a file with h
 
 Various files were then created to test various scenarios such as dividing by zero and going over the limit.
 Figure \ref{fig:sim} shows the calculator computing 1 + 1.
-As can be seen in this figure most of the time is spend on receiving and sending, both of which take \textbf{!!!} ns.
-Meanwhile calculating form receiving the carriage return to the start of sending the result takes only \textbf{!!!} ns.
+As can be seen in this figure most of the time is spend on receiving and sending, as each reception takes 82080ns and each transmission 86800ns.
+This matched with the theory as at a baud rate of 115.2kHz each bit takes 8680.6ns, and each packet has 10bits meaning we expect a time of 86806ns.
+Reception is technically quicker by half a period as it finishes halfway through the stop bit, however this time is lost again in the idle state.
+Meanwhile calculating form receiving the carriage return to the start of sending the result takes only 60ns, similarly converting from the result to digits to send takes 60ns.
+These later values however are dependent on the input values, as a more complex operation such as $32100/3$ required 60ns of calculation and 140ns of conversion.
+It appears that will all 16-bit operation the calculation will complete in 3 clock cycles, however this is not guranteed and depends on the numeric\_std library. 
+Conversion has a fixed time of two clock cycles (40ns) with an extra clock cycle per digit of the result.
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=\textwidth]{Logo.png}
+    \includegraphics[width=\textwidth]{Sim1+1.png}
     \caption{Simulation of 1 + 1}
     \label{fig:sim}
 \end{figure} 
 
-Unlike the multipler before testing all possible inputs is near impossible, as there are $2^{16}$ possible values for A and B, along side for operations meaning that there are $2^{34}$ valid inputs.
-This does not including testing more inputs such as injecting random charchater or using more negative signs than nessecary.
+Unlike the multiplier assignment before testing all possible inputs is near impossible, as there are $2^{16}$ possible values for A and B, along side for operations ($4$) meaning that there are $2^{34}$ valid inputs.
+This does not including testing more inputs such as injecting random characters or using more negative signs than necessary.
 
-Therefor testing was done by \textbf{WE DO NOT HAVE A TESTING STATEGY}
+Therefor testing was done by having a test case for every possible case per components.
+This means that for the receiver and transmitter every relevant ASCII char was tested this consisted of ten numerals, four operators, and the carriage return, meaning only 15 values had to be tested.
+For the decoder every numeral was tested once (in various positions) as well as negative and positive numbers for all possible inputs lengths, ie 20 tests numbers. 
+Some special test cases were also added,
 
 
 \section{Implementation}
 
-Taking the calculator from design to running on physical hardware posed various challengs.
-Firstly was converting all the design to work nicly with-in the provided code for implmentation, such as setting up the proper connections and getting rid of the now obsolete DIP switch connection.
+Taking the calculator from design to running on physical hardware posed various challenge.
+Firstly was converting all the design to work nicely with-in the provided code for implementation, such as setting up the proper connections and getting rid of the now obsolete DIP switch connection.
 After this various timing issues created problems for the design, all of which were flagged by Vivado. 
+The first issue was with the timing created by running some of the state machines on every clock, to fix this the state machines main process had their sensitivity list change to only occur when inputs changed.
+A further refactor to break the state machines into separate processes for the next-state logic, state memory, the output logic, and output register was considered as it would certainly improve performance by having less logic in one process,'
+however due to time constraints the decision was made to extend the calculator to 16-bit instead of doing this refactor.
+Another timing issue occurred in the actual calculator, with negative slack timing when dividing. 
+The fix for this problem as adding a state machine to the calculator, when earlier iteration were purely combinational. 
 
-\subsection{Timing}
+
 
 \pagebreak
 \printbibliography
