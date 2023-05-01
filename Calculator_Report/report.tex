@@ -66,7 +66,7 @@ converting the serial input to numbers and operations,
 calculating the result,
 converting the result back into serial, 
 and finally transmitting the result back.
-The final design allows for a user to input, over serial, any integer between -32767 and 32767 (a signed 16-bit value) with the following integer operations: addition, subtraction, multiplication, and division. 
+The final design allows for a user to input, over serial, any integer between -32768 and 32767 (a signed 16-bit value) with the following integer operations: addition, subtraction, multiplication, and division. 
 The FPGA will then return the result if it can be represented as a signed 16-bit value, otherwise it will return an error. 
 The report also covers background theory for UART communication, an exploration of the original provided code, and a discussion on timing and physical implementation on a Minized Zynq board.
 \vspace{1cm}
@@ -80,7 +80,7 @@ The report also covers background theory for UART communication, an exploration 
 The objectives of this assignment were to create an arithmetic calculator using the std.numeric library and the provided UART code.
 This provided code first has to be debugged and tested.
 The calculator's basic requirement was to compute values given in the "$A {+-*/} B$" format, with no specific instructions of the range of values of $A$, $B$ or the output.
-For the implementation created for this assignment, the calculator can take any input and provide any output that can be described as signed 16-bit integers (ie, between -32767 and 32767),
+For the implementation created for this assignment, the calculator can take any input and provide any output that can be described as signed 16-bit integers (ie, between -32768 and 32767),
 however, through the use of generics, this range can be changed.
 The serial UART input is then processed into the two expected numbers and operations, with any character that is not a numeral (0 to 9) or an operator character ($+-*/$) being ignored.
 When any value is received, it will be echoed back via the transmitter.
@@ -95,7 +95,7 @@ Furthermore, the final design outputs a special character, "!", when an operatio
     \label{fig:toplevel}
 \end{figure} 
 
-To achieve this functionality, the design seen in figure \ref{fig:toplevel} was created.
+To achieve this functionality, the design seen in Figure \ref{fig:toplevel} was created.
 This design shows four main components all interacting together.
 These components are the UART block, the ASCII decoder, the calculator, and the ASCII encoder.
 The UART block handles the receiving of serial UART data, converting it to a byte of parallel data as well as taking in parallel data and transmitting it as serial UART data.
@@ -134,17 +134,18 @@ Equation \ref{eq:uart_sample} shows an example of how data gets converted to a U
 \end{align*}
 
 
-The final key concept behind UART is the baud rate, which is the number of signals per second.
+The final key concept behind UART is the baud rate, which is the number of signals per second \cite{baudrate}.
 The UART baud rate represents how long each bit is held high or low.
 As UART is asynchronous, each device needs to know the baud rate ahead of time and generate its clock at the baud rate.
 This is enough to transmit UART as the serial output line only needs to be updated once each clock cycle,
 however for receiving, the line needs to be checked more often as the devices baud clocks can be out of phase by half a period and because real signals have non-instantaneous transition periods from high to low meaning that is best to check the signal in the middle of each cycle.
-To achieve this, there is a secondary oversampled clock, often by a factor of 16.
+To achieve this goal, a secondary oversampled clock is utilized.
+This clock is often by a factor of 16.
 This oversampled clock is used in the receiver to check the line in the middle of each received bit instead.
 This is done by waiting for half a baud rate after a start bit is received to sample the next bit.
-After this point, the receiver will wait 16 of the oversampled rates to take the following sample.
+After this point, the receiver will wait for 16 oversampled pulses to take the following sample.
 Some implementations may take multiple samples around the midpoint to get a more accurate result; this implementation takes only one measurement.
-Once enough measurements have been made; the receiver will wait for the stop bit before asserting high on the ready line with the data ready on 8 parallel lines.
+Once enough measurements have been made and the receiver has received the stop bit, it will assert high on the ready line with the data ready on eight parallel lines.
 
 % This method of having both receiver and transmitter create their own baud clock means that communication occurs without a shared clocked, letting devices running at vastly different frequencies communicate.
 % Ideally when each device will perfectly generate a clock for baud allowing for flawless communication even when the receiver and transmitter are completly out of phase (ie half a baud period apart), however the baud rates a device can support are limited by its own clock.
@@ -174,30 +175,30 @@ This method means that the actual baud rate has a resolution limited by the cloc
 The baud rate transmitter takes five inputs: a clock, a reset, baud pulses, and a transmit request line, as well as an 8-bit bus for the input data.
 Every clock cycle, the transmitter checks if the transmit request is high.
 Once it is high, the transmitter sends a UART message, including the start and stop bit, containing the data on the parallel input of the UART block.
-This operation is achieved using a finite state machine, a diagram for which can be seen in figure \ref{fig:transmitsm}  
+This operation is achieved using a finite state machine, a diagram for which can be seen in Figure \ref{fig:transmitsm}  
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{TransmitterSM.drawio.png}
+    \includegraphics[width=.5\textwidth]{TransmitterSM.drawio.png}
     \caption{UART Transmitter State Machine Diagram}
     \label{fig:transmitsm}
 \end{figure} 
 
 This diagram shows all the states, transitions, and conditions for transitions.
 The outputs in each of those states and transitions are also shown. 
-As the output depends on the states and inputs, this is known as a Mealy state machine.
+As the output depends on the states and inputs, this is known as a Mealy state machine \cite{dally}.
 The $=$ sign indicates a condition, with $<=$ being used when signals are set and $:=$ when variables are being set. 
 This format is used throughout the report.
-Note that for this component, the transition will occur only on the rising edge of baud pulses, not during the rising edge of clocks. 
+Note that for this component, the transitions will occur only on the rising edge of baud pulses, not during the rising edge of clocks. 
 The exception is the transmit request, which is monitored on the clock rising edge and stored in a buffer as go.
 
 The UART receiver takes in only a clock, a reset, and the oversampled baud pulses.
 As an output, it will give 8 bits of parallel data and a signal when the data is ready.
-This operation is also achieved with a state machine, seen in figure \ref{fig:receivesm}
+This operation is also achieved with a state machine, seen in Figure \ref{fig:receivesm}
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{ReceiverSM.drawio.png}
+    \includegraphics[width=.5\textwidth]{ReceiverSM.drawio.png}
     \caption{UART Receiver State Machine Diagram}
     \label{fig:receivesm}
 \end{figure} 
@@ -218,15 +219,16 @@ Testing was repeated at different clock rates for both the receiver and transmit
 Some of these values, however, are unlikely to work with actual clocks as they would need to be extremely accurate clocks to generate acceptable baud pulses. 
 
 \section{Original Design}
-Once the UART was tested, the remainder of the original top-level design, after correcting a few errors, was investigated.
+Once the UART was tested, the remainder of the original top-level design was investigated.
+The design needed minor fixes and was cleaned up to use proper spacing. 
 This original design would take in any serial inputs, convert them with the receiver, and check for three special cases in the decoder:
 if the data is between $0x61$ to $0x7A$ (a lowercase letter), 
 if the data is between $0x41$ to $0x5A$ (an uppercase letter), 
 or if the data is between $0x31$ to $0x39$ (a numeral).
 For lowercase letters, the decoder will subtract 32 before sending the value on, converting them to uppercase.
 For uppercase letters, the decoder will add 32 before sending, converting them into lowercase.
-For every other case, including numerals, the data would be sent unaltered.
-The LEDs are also controlled by these special cases.
+The data would be sent unaltered for every other case, including numerals.
+These special cases also control the LEDs.
 When a letter is decoded, the lo\_LED will go high, and the hi\_LED will go low.
 When a numeral is decoded,  the lo\_LED will go low, and the hi\_LED will go high.
 In all other cases, both LEDs will go high.
@@ -238,85 +240,97 @@ They used to serve to pick the value sent by the transmitter when the receiver r
 
 
 \section{UART Calculator}
-This original design was heavily modified, with the original encoder being fully removed and the decoder being drastically changed, in order to meet the requirements for this assignment.
+The original design was heavily modified to meet the requirements for this assignment.
+This involved removing the original encoder and drastically modifying the decoder.
 Figure \ref{fig:toplevel} shows this modified design.
-As the UART components remains unchanged it will not be discussed again.
-The overall design has three inputs: the clock, a reset line and the UART in, and only one output: the UART out.
-Additionally there are four key generics: the clock rate, the baud rate, the maximum integer value, and the minimum integer value.
-The first two values are used only by the UART component so that the baud pulses can be generated properly,
-the integer range on the other will dynamically create version of the calculator cable of handling larger integers.
-In practice the limit is -32768 to 32767 (a 16-bit signed integer), this is because the methods used to create different size calculator rely on using a loop during synthesis and Vivado limits loops to $2^{16}$.
+As the UART components remained unchanged, it will not be discussed again.
+The design has three inputs: the clock, a reset line, and the UART in.
+There is only one output: the UART out.
+There are four generics: the clock rate, the baud rate, the maximum integer value, and the minimum integer value.
+The first two values are used only by the UART component so that the baud pulses can be appropriately generated.
+The integer range will be used to dynamically create versions of the calculator cable for handling larger integers.
+All integer registers in the design use these generics to set their limits, and the needed amount of registers for the output digits are created using a synthesis-only log10ceil function.
+In practice, the limit is -32768 to 32767 (a 16-bit signed integer); this is because the methods used to create different size calculators rely on using a loop during synthesis and Vivado limits loops to $2^{16}$.
 
 
 \subsection{ASCII Decoder}
 
-To do any calculating the inputted ASCII character, converted from serial to parallel in the receiver, need to be converted into two numbers, which will be referred to as A and B, and an operation.
-This is done in the ASCII decoder which start by taking the incoming parallel data and "decoding" it.
-THis is done in the decoder, which treats the parallel data as an unsigned integer and check wether the data is between the range of 48 to 71, the range of numerals 0 to 9.
-If so the data outputs a signal labeling the message as a numeral (a custom type created for the calculator) and also output the numeral as an 4-bit numbers (by subtracting 48 from the incoming data).
-Otherwise the decoder checks for operations, $+-*/$, which are ascii codes 43, 45, 42, and 57.
-If these are detected a signal is output labeling the incoming data as an operator (the same custom type as before) as well as another custom type labeling the specific operator.
-The final ASCII character that is checked for is number 13, which is carriage return.
+The first step in computing a calculation is to take the ASCII inputs, already converted from serial to parallel in the UART receiver, and further process them into two numbers, A and B, and an operation.
+This conversion occurs in the ASCII decoder.
+The first step is determining what each ASCII represents.
+The decoder does this by converting the parallel data to an unsigned integer and then checking if the integer is between 48 to 71.
+These decimal values represent the ASCII characters for numerals 0 to 9.
+If so, the decoder outputs a signal labeling the message as a numeral (a custom type created for the calculator).
+It also outputs the numeral as a 4-bit number (subtracting 48 from the incoming data).
+Otherwise, the decoder checks for operations ($+-*/$), which are ASCII codes 43, 45, 42, and 57.
+If these are detected, the decoder outputs a signal labeling the incoming data as an operator (the same custom type as before) and another custom type marking the specific operator.
+The final ASCII character that is checked for is number 13, which is a carriage return.
 For this design, a carriage return is used to signify the end of a message.
-With any valid message the decoder will also output a character ready signal for the state machine.
-If the message is any other value it is simply ignored meaning that an inputs of $-AB1cs 2 + 3 hh4$ will be treated as $-12+34$.
+With any valid message, the decoder will also output a "character ready" signal for the state machine.
+If the message is any other value it is ignored, meaning that an input of $-AB1cs 2 + 3 hh4$ will be treated as $-12+34$.
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{DecoderSM.drawio.png}
+    \includegraphics[width=.5\textwidth]{DecoderSM.drawio.png}
     \caption{ASCII Decoder Mealy State Machine Diagram}
     \label{fig:decodersm}
 \end{figure} 
 
-Now that the incoming data is understood by the decoder the single numerals and operator need to be interpreted properly, this is done with the state machine in figure \ref{fig:decodersm}.
-The state machine will check for its transition conditions anytime any of the inputs change. 
-In its initial state, Wait for A, it will wait to receive either valid numeral or the negative operator. 
-With the latter the SM will mark the upcoming value as negative, this can occur multiple times meaning that $---1$ will be correctly interpreter as $-1$.
-Once a number is received it will be sent to the digit to number converter and the state machine will transition to the Receiving A state. 
-In this state the machine checks for new numerals, which will be sent to the converter, and any operation which will mark the end of number A.
-This operation will be loaded into register A before the state transitions to the Waiting for B state.
-The Waiting for B and Receiving B state mirror the A states, however instead of looking for an operation to mark the end of number B the carriage return is awaited.
-In both cases the digit to number converter works by storing the current value, which starts at 0, and upon receiving a new number multiplying the current value by 10 then add the new number. 
-This new value is then turned negative if the state machine outputs the negative signal and this output is connect to both the A and B registers.
-The registers however will only load when the state machine outputs the load A or load B signal at the end of Receiving A and Receiving B states,
-these load signals will also clear the converter's current value to allow it to convert the next series of numerals.
-Finally when the state machine moves from Receiving B back to Waiting for A it will output a ready signal, indicating that register A, B, and Op contain all the data that needs to be computed.
+Now that the decoder understands the incoming data, the individual numerals and operators must be interpreted.
+Interpretation is done with the state machine (SM) in Figure \ref{fig:decodersm}.
+The SM will check for its transition conditions whenever any inputs change. 
+In its initial state, Wait for A, it will wait to receive either a valid numeral or the negative operator. 
+With the latter, the SM will mark the upcoming value as negative; this can occur multiple times meaning that $---1$ will be correctly interpreted as $-1$.
+Once a numeral is received, the SM signals the digit-to-number converter to read the value, and the SM will transition to the Receiving A state. 
+In this state, the SM checks for new numerals and will again signal the digit-to-number converter when this is the case.
+Once any operation is received, the SM will mark the end of number A and transition to the Waiting for B state.
+The operation will also be stored in the operation (op) register.
+The Waiting for B and Receiving B states mirror the A states.
+However, instead of looking for an operation to mark the end of number B the carriage return is awaited.
+In both cases, the digit-to-number converter works by storing the current value, which starts at 0, and upon receiving a new number multiplying the current value by ten and then adding the new numeral to the current value.
+This new value is made negative if the SM outputs the negative signal.
+The registers will store this value when the SM outputs the load A or load B signal at the end of Receiving A and Receiving B states.
+These load signals will also clear the converter's current value to allow it to convert the next series of numerals.
+Finally, when the SM moves from Receiving B back to Waiting for A, it will output a ready signal, indicating that register A, B, and Op contain all the data that needs to be computed.
 
-To achieve this conversion the numeric STD library is utilized both in the decoder with the ASCII data and in the digit to number converter turning numerals into larger integers.
+To achieve this conversion, the numeric STD library is utilized in the decoder with the ASCII data and in the digit-to-number converter turning numerals into larger integers.
+
 \subsection{Calculator}
+Despite being a calculator, the calculating component of this assignment is one of the simplest.
+This simplicity is thanks to the numeric STD library, which implements the logic required for adding, subtracting, multiplying, and dividing integers.
+Furthermore, as UART communication is orders of magnitude slower than the clock frequency (115.2 kHz vs 50 MHz)
+the speed of even the slowest calculations appears near instant compared to communication (this can be seen on the simulation graph in Figure \ref{fig:sim}).
 
-Despite describing this project as a calculator, the calculating component is one of the simplest.
-This is due to heavy usage of the numeric STD library which implements the logic required for adding, subtracting, multiplying, and dividing integers.
-Furthermore as UART communication is orders of magnitude slower than the clock frequency (115.2 kHz vs 50 MHz)
-the speed of even the slowest calculations appears near instant compared to communication (this can be seen on the simulation graph in figure \ref{fig:sim}).
-
-The calculator takes in 2 integers, an operation and ready signal as an input, which it uses to produce a result integer as well as a signal indicating that the calculator is done and a signal indicating an invalid operations, specially dividing by zero or exceeding the signed integer limit.
-The current implementation of the calculator is state machine driven, see figure \ref{fig:calcsm}. 
-Upon being informed that the data and operation is ready in the registers the machine will send a start signal to the appropriate sub-module for each operations.
-Then it will wait for the component to send a ready signal at which point the calculator will forward the result and invalid line from the sub-module to the next component along with a done signal.
+The calculator takes in a clock, two integers, an operation, and a ready signal as input.
+These inputs are then used to produce an integer and a signal indicating that the calculator is done. 
+The calculator also has an extra signal indicating an invalid operation, which occurs when dividing by zero or exceeding the signed integer limit.
+The current implementation of the calculator is state machine driven, shown in Figure \ref{fig:calcsm}. 
+Upon being informed that the data and operation are ready the SM will send a start signal to the appropriate sub-module for each operation.
+Then it will wait for the component to send a ready signal, at which point the calculator will forward the result and invalid line from the sub-module to the next encoder along with a done signal.
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{CalculatorSM.drawio.png}
+    \includegraphics[width=.5\textwidth]{CalculatorSM.drawio.png}
     \caption{ASCII Calculator Mealy State Machine Diagram}
     \label{fig:calcsm}
 \end{figure} 
 
-Each of the sub-modules are similar in design, awaiting a start signal which will trigger the operation to begin.
-Before and after the operation some error checking is done,
-this checking is specific to each modules with the divider checking for divide by zero errors and the other checking if the new output is below the minimum value or above the maximum value.
+Each sub-module is similar in design, with all four of them awaiting a start signal which will trigger the operation to begin.
+Before and after the operation, some error checking is done.
+The error checking is specific to each module, with the divider checking for divide-by-zero errors and the others checking if the new output is below the minimum value or above the maximum value.
 Once the result is done, valid or invalid, the sub-module will output a done signal.
 
-This approach is rather space inefficient, as each module is independent and shares no components with other components.
-As two operations will never occur simultaneously this could be made more efficient,
-but the current design is simpler and allows for easy expansion such as adding a exponent function.
+This approach is inefficient, as each module is independent and shares no components with other components.
+As two operations will never occur simultaneously, this could be made more efficient.
+However, the current design is simple and allows for easy expansion, such as adding an exponent function to the calculator.
 
 \subsection{ASCII Encoder}
 
-Once an integer result is calculated it needs to be converted back into a series ASCII characters and sent out one by one to the UART transmitter.
-This is done in the ASCII Encoder and Sender.
-This components takes in the signed 16-bit integer results and a done signal from the calculator, and the transmitter's ready signal.
-These two stages happen sequentially meaning that a simple state machine is used to control the encoder, shown in figure \ref{fig:encodersm}
+Once an integer result is calculated, the result needs to be converted into a series ASCII characters and sent out one by one to the UART transmitter.
+These operations occur in the ASCII Encoder and Sender.
+This component takes in a clock, a reset, a signed 16-bit integer result, a done signal from the calculator, and the transmitter's ready signal as input.
+The outputs are 8 bits of output data and a send signal.
+The conversion and sending stages happen sequentially, meaning that a simple state machine is used to control the encoder, shown in Figure \ref{fig:encodersm}
 
 % \begin{figure}[H]        
 %    \centering
@@ -325,93 +339,130 @@ These two stages happen sequentially meaning that a simple state machine is used
 %    \label{fig:encoderimp}
 % \end{figure} 
 
-\begin{figure}[H]        
+\begin{figure}%[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{EncoderSM.drawio.png}
+    \includegraphics[width=.5\textwidth]{EncoderSM.drawio.png}
     \caption{ASCII Encoder Mealy State Machine Diagram}
     \label{fig:encodersm}
 \end{figure} 
 
-When the result is ready the state will transition to converting if the result is valid or go straight to sending if the result is invalid.
-Converting from numbers back to digits is a little bit more challenging than the inverse as rather than storing one number multiple numerals need to be stored.
-To achieve this there are enough registers to store every digits of the largest possible numbers,
-this is done automatically using a log10 and ceiling function at synthesis.
-In the case of the signed 16-bit number the largest value is 32767, so 5 registers are required.
-The loading of these register is achieved using number to digit converter and a counter.
-The converter starts by taking the remainder of result where it divided by ten and then dividing the result by 10.
-This remainder is then stored in the register with the index of the counters output. 
-Finally if the newly divided result can be divided by 10 again, and not be zero, the counter is incremented and the process starts again.
-Following this process means that any number will have its digits stored in the registers, as 4-bit values, with the counter pointing at the highest order term.
-This process is identical for both negative and positive values, as the only difference will be wether a negative sign is sent, which will be handled by the sender.
-Once this is done a ready signal is sent and the overall state machine will move to the sender.
+When the result is ready, the state will transition to converting if the result is valid or go straight to sending if the result is invalid.
+Converting from numbers back to digits is more challenging than the inverse as rather than storing one integer, multiple numerals need to be stored.
+To store all the possible numerals registers are created on synthesis based on the given integer limit. 
+In the case of the signed 16-bit number, the largest value is 32767, so five registers are required.
+These register's loading is done using a number-to-digit converter and a counter.
+The converter starts by taking the remainder of the result when divided by ten.
+This remainder is then stored in the register with the index of the counter's output. 
+The result is then divided by ten.
+Finally, if the newly divided result can be divided by ten again and not be zero, the counter is incremented and the process starts again.
+Following this process means that any number will have its digits stored in the registers, as 4-bit values, with the counter indexing the highest-order term.
+This process is identical for negative and positive values, as the only difference will be whether a negative sign will be sent, which will be handled by the sender.
+Once the conversion is done, a ready signal is sent and the encoder's state machine will move to the sender.
 
 \subsubsection{Sender}
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=.66\textwidth]{SenderSM.drawio.png}
+    \includegraphics[width=.5\textwidth]{SenderSM.drawio.png}
     \caption{ASCII Sender Mealy State Machine Diagram}
     \label{fig:sendersm}
 \end{figure} 
 
-The sender sub-component start after the number has been converted to digits, or immediately upon receiving an invalid number. 
-It however shares the digit registers and counters as it will use them for the transmitting.
-The sender operators using the state machine in figure \ref{fig:sendersm} as well as an ascii converter which will take numerals and convert them to 8-bit ASCII characters.
-Once the data and the transmitter are ready the state machine will send a value, which is a somewhat complicated operation,
-then it will wait for the transmitter to be ready either to send the next numeral or, if there is no more data left, it will wait for the carriage return signal to be sent before retuning to idle
-The send operation does the following: firstly if the number is negative it will tell the converter to output the ASCII code for a negative sign, number 45, then mark the fact a negative has been sent to avoid repeating this.
-Next it will send the numeral to the converter, which will add 48 to the number to make it the ASCII code, and then checks if the counter is at zero.
-If the counter is already at zero, it means the number is done sending which is sorted as a variable, otherwise the counter is simply decremented by one.
-The exception to all this is if the invalid result input is given, in this case the sender will tell the converter to output the invalid result character (! or ASCII 33) and the end of data variable is set to true.
-Then on the final send, when the end of data is true it will tell the converter to output a carriage return and then signal to the state machine that the message is done.
-This is the slowest of the components, as for each send a full UART message needs to be sent which is far slower than the clock.
+The sender sub-component starts after the number has been converted to digits or immediately upon receiving an invalid number. 
+The sender also uses the digit registers and counter used by the converter.
+Operation of the sender is achieved using the state machine in Figure \ref{fig:sendersm} as well as an ASCII converter which will take numerals and convert them to 8-bit ASCII characters.
+Once the data and the transmitter are ready, the SM will send a value,
+then it will wait for the transmitter to be ready again either to send the next numeral or, if there is no more data left, to send a carriage return signal before returning to idle.
+To send a value, the sender does the following: firstly, if the number is negative, it will tell the converter to output the ASCII code for a negative sign, number 45, then mark the fact a negative has been sent to avoid repeating this.
+Next, it will send the numeral stored in the register that the counter indexes to the converter.
+The converter will add 48 to the number to convert it to an 8-bit ASCII code.
+If the counter is now at zero, it means the number is done sending and the "end of data" boolean is set to true.
+If the counter is not zero, it is decremented by one.
+The exception to all this is if the invalid result input is given.
+In this case, the sender will output the invalid result character (! or ASCII 33) and the end of data variable is set to true.
+Then on the final send, when the end of data is true, it will output a carriage return and then signal to the state machine that the message is done.
 
 \subsection{Test Bench}
 
 The test bench for simulating the full calculator is identical to the test bench for the UART components.
-Once more the test bench creates an instance of the top level implementation in figure \ref{fig:toplevel}
-and then creates a second UART components with its own clock to transmit the input and decode the output.
-The data for the transmitter is once more a loop that goes through a file with hex codes that will be sent as soon as the transmitter is ready.
+The test bench creates an instance of the top-level implementation in Figure \ref{fig:toplevel}
+and then creates a second UART component with a different clock to transmit the input and decode the output.
+This second transmitter is once again given input data from a text file with hex codes.
 
-Various files were then created to test various scenarios such as dividing by zero and going over the limit.
 Figure \ref{fig:sim} shows the calculator computing 1 + 1.
-As can be seen in this figure most of the time is spend on receiving and sending, as each reception takes 82080ns and each transmission 86800ns.
-This matched with the theory as at a baud rate of 115.2kHz each bit takes 8680.6ns, and each packet has 10bits meaning we expect a time of 86806ns.
-Reception is technically quicker by half a period as it finishes halfway through the stop bit, however this time is lost again in the idle state.
-Meanwhile calculating form receiving the carriage return to the start of sending the result takes only 60ns, similarly converting from the result to digits to send takes 60ns.
-These later values however are dependent on the input values, as a more complex operation such as $32100/3$ required 60ns of calculation and 140ns of conversion.
-It appears that will all 16-bit operation the calculation will complete in 3 clock cycles, however this is not guranteed and depends on the numeric\_std library. 
-Conversion has a fixed time of two clock cycles (40ns) with an extra clock cycle per digit of the result.
+This Figure shows that most of the calculator's time is spent on receiving and sending, as each reception takes 82080ns and each transmission 86800ns.
+This matches with the theory as at a baud rate of 115.2kHz, each bit is asserted for 8680 ns.
+Each packet has 10 bits meaning a time of 86800 ns is to be expected.
+Reception is technically quicker by half a period as it finishes halfway through the stop bit.
+However, this time is lost again in the idle state.
+When receiving the inputs, the decoder takes only one clock cycle (20 ns) from when the receiver marks the data as ready to convert.
+Once the decoder is done, the calculator always takes 60 ns to compute a result, including invalid operations.
+However, this is not guaranteed and depends on the numeric\_std library. 
+Once the result is ready, the encoder takes a variable amount of time to complete, with two clock cycles of fixed cost (40 ns) and an additional clock cycle per digit of the result.
+All these times are negligible, as even the largest operation would take only $20 + 60 + (40 + 5 * 20) = 220$ ns, which is less time than it takes for the start-bit of the final echoed character to send.
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=\textwidth]{Sim1+1.png}
+    \includegraphics[width=.75\textwidth]{Sim1+1.png}
     \caption{Simulation of 1 + 1}
     \label{fig:sim}
 \end{figure} 
 
-Unlike the multiplier assignment before testing all possible inputs is near impossible, as there are $2^{16}$ possible values for A and B, along side for operations ($4$) meaning that there are $2^{34}$ valid inputs.
-This does not including testing more inputs such as injecting random characters or using more negative signs than necessary.
+Unlike the multiplier assignment before, testing all possible inputs is nearly impossible, as there are $2^{16}$ possible values for A and B as well as the four operations, meaning that there are $2^{34}$ valid inputs.
+This does not include testing more inputs, such as injecting random characters or using more negative signs than necessary.
 
-Therefor testing was done by having a test case for every possible case per components.
-This means that for the receiver and transmitter every relevant ASCII char was tested this consisted of ten numerals, four operators, and the carriage return, meaning only 15 values had to be tested.
-For the decoder every numeral was tested once (in various positions) as well as negative and positive numbers for all possible inputs lengths, ie 20 tests numbers. 
-Some special test cases were also added,
+Therefore testing was done by having a test case for every possible case per component.
+For the receiver and transmitter, every relevant ASCII char was tested.
+This means all ten numerals, four operators, and the carriage return had to be received and transmitted once.
+For the decoder, every numeral was tested once (in various positions), as well as negative and positive numbers for all possible input lengths.
+Some exceptional test cases were also added, such as multiple negative signs and superfluous characters.
+The calculator was tested with every type of operation, alongside some purposeful errors.
+Finally, the encoder had to be tested with positive and negative results of all possible lengths.
+The appendix includes a series of operations that meet all of these conditions.
+These were converted to hex inputs and written to a text file used as the final simulation test for the design. 
 
 
 \section{Implementation}
 
-Taking the calculator from design to running on physical hardware posed various challenge.
-Firstly was converting all the design to work nicely with-in the provided code for implementation, such as setting up the proper connections and getting rid of the now obsolete DIP switch connection.
-After this various timing issues created problems for the design, all of which were flagged by Vivado. 
-The first issue was with the timing created by running some of the state machines on every clock, to fix this the state machines main process had their sensitivity list change to only occur when inputs changed.
-A further refactor to break the state machines into separate processes for the next-state logic, state memory, the output logic, and output register was considered as it would certainly improve performance by having less logic in one process,'
-however due to time constraints the decision was made to extend the calculator to 16-bit instead of doing this refactor.
-Another timing issue occurred in the actual calculator, with negative slack timing when dividing. 
-The fix for this problem as adding a state machine to the calculator, when earlier iteration were purely combinational. 
-
-
+Taking the calculator from design to running on physical hardware posed various challenges.
+The first step was converting the design to work within the provided code for implementation, such as setting up the proper connections and removing the now obsolete DIP switch connection.
+After this, various timing issues created problems for the design, all of which were flagged by Vivado. 
+The first issue was the timing created by running some of the state machines on every clock. 
+To fix this, the state machines' primary processes had their sensitivity list changed to only occur when inputs changed.
+A further refactor was considered to break the state machines into separate processes for the next-state logic, state memory, output logic, and output register.
+A refactor such as this would improve performance by having less logic in one process \cite{wakerly1990digital},
+however, due to time constraints, the decision was made to extend the calculator to 16-bit instead of doing this refactor.
+Another timing issue occurred in the calculator, with negative slack timing when dividing. 
+The fix for this problem was adding a state machine to the calculator when earlier iterations were purely combinational. 
+Even with these changes and an implementation with no error, the generated bit-stream did not create any output when loaded on the FPGA.
+This was also the case when the originally provided code was loaded onto the FPGA, implying the error may not be with the calculator design itself but instead some error during implementation.
+With more time, perhaps the FPGA could be programmed correctly.
 
 \pagebreak
-\printbibliography
+\appendix
+\section{References}
+\printbibliography[heading=none]
+\pagebreak
+\section{Appendix}
+\subsection{Test Cases}
+
+\setcounter{equation}{0}
+\begin{align}
+    0+-67890&=-67890 \\
+    1--1234&=1235\\
+    23*-567&=-13041\\
+    456/-89&=-5\\
+    --7890+-1&=7889\\
+    12345/0&=\text{DIV ZERO}\\
+    -67890/6&=-11315\\
+    -1234+23&=-1211\\
+    -567+--456&=-111\\
+    ---89+7890&=7801\\
+    -1+12345&=12344\\
+    4*---22&=-88\\
+    123-123&=0\\
+    256/12&=22\\
+    128+128&=256\\
+    1+1&=2
+\end{align}
 
 \end{document}

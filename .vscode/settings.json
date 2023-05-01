@@ -4,5 +4,11 @@
         "Minized",
         "senarios",
         "simimatianiously"
+    ],
+    "grammarly.selectors": [
+        {
+            "language": "latex",
+            "scheme": "file"
+        }
     ]
 }
