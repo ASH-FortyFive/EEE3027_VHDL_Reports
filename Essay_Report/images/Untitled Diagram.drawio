@@ -1,0 +1,151 @@
+<mxfile host="app.diagrams.net" modified="2023-05-15T15:56:45.735Z" agent="Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/111.0" etag="f61WL8FnZOPsv4QwogjZ" version="21.2.9" type="device">
+  <diagram name="Page-1" id="nB6wo6mzvr28ixRbWvk5">
+    <mxGraphModel dx="778" dy="458" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="0R7-leskUWct5-lotRwP-1" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;AHB Slave&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="240" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-3" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.125;entryY=-0.002;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="0R7-leskUWct5-lotRwP-19">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="320" as="sourcePoint" />
+            <mxPoint x="160.5" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-9" value="Address" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0R7-leskUWct5-lotRwP-3">
+          <mxGeometry x="-0.4" y="1" relative="1" as="geometry">
+            <mxPoint y="31" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-6" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.375;entryY=-0.002;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="0R7-leskUWct5-lotRwP-19">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="320" as="sourcePoint" />
+            <mxPoint x="240.5" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-10" value="Write" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0R7-leskUWct5-lotRwP-6">
+          <mxGeometry x="-0.28" y="3" relative="1" as="geometry">
+            <mxPoint y="23" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-7" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="0R7-leskUWct5-lotRwP-18">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="320" as="sourcePoint" />
+            <mxPoint x="320" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-11" value="Data In" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0R7-leskUWct5-lotRwP-7">
+          <mxGeometry x="-0.48" y="5" relative="1" as="geometry">
+            <mxPoint x="-5" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-8" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="370" as="sourcePoint" />
+            <mxPoint x="399.5" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-12" value="Data Out" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0R7-leskUWct5-lotRwP-8">
+          <mxGeometry x="0.34" y="-1" relative="1" as="geometry">
+            <mxPoint y="3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-14" value="" style="shape=flexArrow;endArrow=classic;startArrow=classic;html=1;rounded=0;startWidth=82;startSize=7;endWidth=82;endSize=7;width=81.42857142857143;" edge="1" parent="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="279.29" y="160" as="sourcePoint" />
+            <mxPoint x="279.29" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-18" value="&lt;div&gt;Hamming&lt;/div&gt;&lt;div&gt;Encoder&lt;br&gt;&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="290" y="358" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-19" value="&lt;div&gt;SRAM Controller&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="468" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-20" value="Hamming Decoder" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="365" y="358" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-21" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="318" y="417" as="sourcePoint" />
+            <mxPoint x="318" y="467" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-22" value="Data In" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0R7-leskUWct5-lotRwP-21">
+          <mxGeometry x="-0.48" y="5" relative="1" as="geometry">
+            <mxPoint x="-5" y="17" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-23" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="398" y="467" as="sourcePoint" />
+            <mxPoint x="397.5" y="417" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-24" value="Data Out" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0R7-leskUWct5-lotRwP-23">
+          <mxGeometry x="0.34" y="-1" relative="1" as="geometry">
+            <mxPoint y="13" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-25" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="0R7-leskUWct5-lotRwP-26">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="156" y="628" as="sourcePoint" />
+            <mxPoint x="155" y="548" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-26" value="&lt;div&gt;SRAM&lt;/div&gt;&lt;div&gt;Chip&lt;/div&gt;&lt;div&gt;&lt;br&gt; &lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="135" y="588" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-27" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="0R7-leskUWct5-lotRwP-28">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="207" y="628" as="sourcePoint" />
+            <mxPoint x="206" y="548" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-28" value="&lt;div&gt;SRAM&lt;/div&gt;&lt;div&gt;Chip&lt;/div&gt;&lt;div&gt;&lt;br&gt; &lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="186" y="588" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-29" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="0R7-leskUWct5-lotRwP-30">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="256" y="628" as="sourcePoint" />
+            <mxPoint x="255" y="548" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-30" value="&lt;div&gt;SRAM&lt;/div&gt;&lt;div&gt;Chip&lt;/div&gt;&lt;div&gt;&lt;br&gt; &lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="235" y="588" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-31" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="0R7-leskUWct5-lotRwP-32">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="306" y="628" as="sourcePoint" />
+            <mxPoint x="305" y="548" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-32" value="&lt;div&gt;SRAM&lt;/div&gt;&lt;div&gt;Chip&lt;/div&gt;&lt;div&gt;&lt;br&gt; &lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="285" y="588" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-33" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="0R7-leskUWct5-lotRwP-34">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="356" y="628" as="sourcePoint" />
+            <mxPoint x="355" y="548" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-34" value="&lt;div&gt;SRAM&lt;/div&gt;&lt;div&gt;Chip&lt;/div&gt;&lt;div&gt;&lt;br&gt; &lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="335" y="588" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-35" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="0R7-leskUWct5-lotRwP-36">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="406" y="628" as="sourcePoint" />
+            <mxPoint x="405" y="548" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-36" value="&lt;div&gt;SRAM&lt;/div&gt;&lt;div&gt;Chip&lt;/div&gt;&lt;div&gt;&lt;br&gt; &lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="385" y="588" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0R7-leskUWct5-lotRwP-37" value="Tri-State Buffer" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="320" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

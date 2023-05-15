@@ -224,8 +224,7 @@ The Cortex-M design uses the AHB-Lite (High-performance Bus) protocol, which is 
 With this knowledge, a module provided by ARM, the creators of AMBA,
 for communicating between an AHB and an external SRAM called \texttt{ahb\_to\_extmem16.v} can be used\cite{sram_arm}.
 The pinout of this block can be seen in Figure \ref{fig:ahb_ext}, which shows how the information from the bus gets converted into the required inputs and outputs for memory.
-The important
-Th
+The important outputs of the block are address, data, and write line, with the only input being read data.
 This is likely achieved using a state machine internally, as well as multiplexers and buffers to get information off the bus, meaning that the design uses mixed logic.
 
 \begin{figure}[H]        
@@ -234,6 +233,9 @@ This is likely achieved using a state machine internally, as well as multiplexer
     \caption{AHB to External Memory\cite{sram_arm}}
     \label{fig:ahb_ext}
 \end{figure} 
+
+The address and write enable line can be passed on to the SRAM controller, however, Hamming codes are employed to protect the data from noise.
+This involves encoding incoming data and decoding outgoing data.
 
 SRAM, static random access memory, is a type of volatile memory (data is only retained when powered) \cite{dally}. 
 Comparing SRAM to DRAM, the key difference is the structure as SRAM consists of flip-flops requiring multiple transistors, which incurs a higher cost per GB when compared to DRAM.
