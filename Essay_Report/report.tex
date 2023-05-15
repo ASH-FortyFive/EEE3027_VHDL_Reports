@@ -92,7 +92,7 @@ This connection enables the JTAG interface to control and monitor the data on th
 the NVIC, processor core, debug subsystem, memory and peripherals, or any combination thereof. 
 
 This sort of boundary testing is done via a path of interconnected shift-register cells on each signal pin in the bus, which are controlled via the Test Access Port (TAP) of the JTAG.
-The TAP has four core control signals\cite{JTAG}:
+The TAP has four core control signals\cite{jtag}:
 \begin{itemize}
     \item TCK, clock to synchronize operation
     \item TMS, mode select line
@@ -106,8 +106,8 @@ The state machine has two paths to capture and control the data on the instructi
 
 \begin{figure}[H]        
     \centering
-    \includegraphics[width=\textwidth]{JTAG-state-machine-diagram1.jpg}
-    \caption{JTAG State Machine Diagram from Corelis\cite[Corelis]}
+    \includegraphics[width=.5\textwidth]{JTAG-state-machine-diagram1.jpg}
+    \caption{JTAG State Machine Diagram from Corelis\cite{Corelis}}
     \label{fig:sm}
 \end{figure} 
 
@@ -118,12 +118,81 @@ These cells have a parallel input and output, which allow for the regular operat
 
 
 \subsection{VHDL Implementation}
+\textbf{CLUELESS}
 
-\subsection{Calculations Single Stage}
+\subsection{Calculations Single Stage} \label{sec:single}
+% In 300 words or less, calculate the throughput, latency, and clock period of a single-
+% stage generic processor that takes 24 ns per instruction. Assume flip-flops at the input
+% and out have a treg time of 300 ps.
+
+One can calculate throughput, latency, and clock period given time per unit of work and the register overhead.
+Throughput ($\omega$) is the number of tasks a module can solve in a given period of time, with a standard unit of mega-operations (millions of operations) per second or mops\cite{dally}.
+Latency ($T$) is the time taken per task\cite{dally}. 
+These two values are reciprocal ($\omega = \frac{1}{T}$).
+The clock period ($T_{\text{clk}}$) is the time from one rising edge to the next
+
+For a generic single-stage processor, which takes 24 ns per instruction ($T_m$), and with flip-flops at the input and output, with 300 ps overhead($t_{\text{reg}}$), the following values can be calculated:
+
+\begin{align}
+    T &= T_m + t_{\text{reg}} = 24\text{ ns} + .3\text{ ns} = 24.3\text{ ns}\\
+    \omega = \frac{1}{T} = \frac{1}{24.3} = 41.15\text{ Mops}\\
+    T_{\text{clk}} &= 24.3\text{ ns}
+\end{align}
+
+This system area usage could also be calculated if the area of the module ($a_m$) and the area of the register ($a_{\text{ref}}$) were known, using the following equation.
+\begin{align}
+    a &= a_m + a_{\text{ref}}
+\end{align}
+(133)
+
 \subsection{Calculations Four Core}
+% In 300 words or less, repeat the calculations in (d) and evaluate for an 4-core multi
+% ARM processor system and with a 9-stage pipeline. Comment with comparisons from
+% (d) on the advantages of using a multi-core pipeline system design and the impact on
+% area.
+
+Expanding on part \ref{sec:single} with a four-core system with nine stages, the calculations differ slightly. 
+
+Firstly the effect of using nine stages ($n = 9$) is calculated, as there is now more register overhead\cite{dally} ($T_m$ and $t_{\text{reg}}$ are unchanged).
+\begin{align}
+    T &= T_m + nt_{\text{reg}} = 24\text{ ns} + 9*.3\text{ ns} = 26.7\text{ ns}\\
+    \omega_{\text{pipeline}} = \frac{1}{T_m/n+t_{\text{reg}}} = \frac{1}{24\text{ ns}/9+.3\text{ ns}} = \frac{1}{2.967\text{ ns}} = 337.08\text{ Mops}\\
+    T_{\text{clk}} &=  26.7\text{ ns} / 9 = 2.967\text{ ns}
+\end{align}
+
+The four-core nature of the new system does not add any timing overhead but will increase throughput four-fold, as the task will be completed in parallel.
+\begin{align}
+    \omega = \omega_{\text{pipeline}} * 4 = 337.08\text{ Mops} * 4 = 1348.31 \text{ Mops}
+\end{align}
+
+These changes make the new system 32 times faster than the one in part \ref{sec:single}.
+The cost of this new design's performance is a considerable increase in area.
+The new requirement can be calculated as follows, with $n$ being the number of stages and $p$ the number of parallel systems:
+\begin{align}
+    a &= p(a_m + na_{\text{ref}}) \\ 
+    a &= 4a_m + 36a_{\text{ref}} \\ 
+\end{align}
+
+Pipelining must also be done in a manner that avoids bottlenecking the system, as the slowest module limits throughput.
+
+(135)
 
 \section{Design Challenge}
 \subsection{Architecture and Block's Design}
+AMBA, or Advanced Microcontroller Bus Architecture, is an open Architecture used as the standard solution for how blocks on an SoC or ASIC interface\cite{amba}.
+The Cortex-M design uses the AHB (High-performance Bus) protocol.
+SRAM, static random access memory, is a type of volatile memory (data is only retained when powered) \cite{dally}. 
+SRAM is most easily compared to DRAM, with the key difference being structure.
+SRAM consists of flip-flops requiring multiple transistors, which incurs a higher cost per GB when compared to DRAM.
+However, using flip-flips means SRAM need not be refreshed the way DRAM must, allowing SRAM to offer quick (single cycle) memory off-chip while also being lower power.
+As size per chip is limited, multiple SRAM ships are often used together.
+
+
+As with most memory SRAM requires an address, data input, and write signal and produces only a data output. Most SRAM is also synchronous, requiring a clock.
+
+Hamming codes are a type of error detection and correction code that allow for one erronus bit to be detected and located amount of noise to be mitgated.
+A Hamming code archives this by adding parity bits to blocks of data.
+Hamming codes only work with single-bit errors. \cite{hamming} \cite{ham}
 \subsection{VHDL Implementation}
 
 \pagebreak
