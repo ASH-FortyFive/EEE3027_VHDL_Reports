@@ -269,6 +269,7 @@ For this design, a carriage return is used to signify the end of a message.
 With any valid message, the decoder will also output a "character ready" signal for the state machine.
 If the message is any other value it is ignored, meaning that an input of $-AB1cs 2 + 3 hh4$ will be treated as $-12+34$.
 
+
 \begin{figure}[H]        
     \centering
     \includegraphics[width=.5\textwidth]{DecoderSM.drawio.png}
