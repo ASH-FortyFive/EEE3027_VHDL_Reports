@@ -1,0 +1,406 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="442.78176" height="291.67776" xml:space="preserve" color-interpolation-filters="sRGB" class="st5" version="1.1"> 
+ <style type="text/css">
+	<![CDATA[
+		.st1 {fill:none;stroke:none;stroke-linecap:butt;stroke-width:0.5}
+		.st2 {fill:#000000;font-family:'Lucida Sans Typewriter','Lucida Console','Courier New',Courier,monospace;font-size:0.666664em}
+		.st3 {fill:#ffffff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st4 {fill:#000000;font-family:Arial,Helvetica,sans-serif;font-size:0.666664em;font-weight:bold}
+		.st5 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+		.st6 {marker-end:url(#mrkr4-87);stroke:#000000;stroke-linecap:butt;stroke-width:0.5}
+		.st7 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.21739130434783}
+		.st8 {marker-start:url(#mrkr4-102);stroke:#000000;stroke-linecap:butt;stroke-width:1.5}
+		.st9 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.45454545454545}
+		.st10 {marker-end:url(#mrkr4-111);stroke:#000000;stroke-linecap:butt;stroke-width:1.5}
+		.st11 {marker-start:url(#mrkr4-130);stroke:#000000;stroke-linecap:butt;stroke-width:0.5}
+	]]>
+	</style> 
+ <defs id="Masters"> 
+  <symbol id="master0" class="st5"> 
+   <title>Signal 2</title> 
+   <g id="master-shape6-82"> 
+    <title>Sheet.6</title> 
+    <path d="M0 218.76 L18.08 218.76" class="st6" /> 
+   </g> 
+  </symbol> 
+  <symbol id="master4" class="st5"> 
+   <title>Bus 1</title> 
+   <g id="master-shape5-97"> 
+    <title>Bus (0)</title> 
+    <path d="M6.24 218.76 L6.6 218.76 L22.68 218.76" class="st8" /> 
+   </g> 
+  </symbol> 
+  <symbol id="master5" class="st5"> 
+   <title>Bus 2</title> 
+   <g id="master-shape5-106"> 
+    <title>Sheet.5</title> 
+    <path d="M0 218.76 L16.08 218.76" class="st10" /> 
+   </g> 
+  </symbol> 
+  <symbol id="master6" class="st5"> 
+   <title>Signal 1</title> 
+   <g id="master-shape5-125"> 
+    <title>Line 0.5 (0)</title> 
+    <path d="M4.24 218.76 L4.6 218.76 L22.68 218.76" class="st11" /> 
+   </g> 
+  </symbol> 
+ </defs> 
+ <defs id="Markers"> 
+  <g id="lend4"> 
+   <path d="M 2 1 L 0 0 L 2 -1 L 2 1 " style="stroke:none" /> 
+  </g> 
+  <marker overflow="visible" id="mrkr4-87" class="st7" orient="auto"> 
+   <use xlink:href="#lend4" transform="scale(-4.6,-4.6) " /> 
+  </marker> 
+  <marker overflow="visible" id="mrkr4-102" class="st9" orient="auto"> 
+   <use xlink:href="#lend4" transform="scale(2.2) " /> 
+  </marker> 
+  <marker overflow="visible" id="mrkr4-111" class="st9" orient="auto"> 
+   <use xlink:href="#lend4" transform="scale(-2.2,-2.2) " /> 
+  </marker> 
+  <marker overflow="visible" id="mrkr4-130" class="st7" orient="auto"> 
+   <use xlink:href="#lend4" transform="scale(4.6) " /> 
+  </marker> 
+ </defs> 
+ <g> 
+  <title>Page-1</title> 
+  <g id="shape1-1" transform="translate(151.764,-211.244)"> 
+   <title>Sheet.1</title> 
+   <desc>
+     ahb_to_extmem16.v 
+   </desc> 
+   <rect x="0" y="213.329" width="90.7087" height="5.42929" class="st1" /> 
+   <text x="4.38" y="218.44" class="st2">
+     ahb_to_extmem16.v 
+   </text> 
+  </g> 
+  <g id="shape2-4" transform="translate(153.004,-0.24)"> 
+   <title>Sheet.2</title> 
+   <rect x="0" y="9.23465" width="87.874" height="209.524" class="st3" /> 
+  </g> 
+  <g id="shape8-6" transform="translate(96.878,-195.591)"> 
+   <title>Sheet.8</title> 
+   <desc>
+     HCLK 
+   </desc> 
+   <rect x="0" y="212.849" width="32.5984" height="5.90929" class="st1" /> 
+   <text x="6.38" y="218.2" class="st4">
+     HCLK 
+   </text> 
+  </g> 
+  <g id="shape9-9" transform="translate(84.122,-184.492)"> 
+   <title>Sheet.9</title> 
+   <desc>
+     HRESETn 
+   </desc> 
+   <rect x="0" y="212.849" width="45.6378" height="5.90929" class="st1" /> 
+   <text x="4.31" y="218.2" class="st4">
+     HRESETn 
+   </text> 
+  </g> 
+  <g id="shape10-12" transform="translate(99.7126,-173.153)"> 
+   <title>Sheet.10</title> 
+   <desc>
+     HSEL 
+   </desc> 
+   <rect x="0" y="212.849" width="29.7638" height="5.90929" class="st1" /> 
+   <text x="4.41" y="218.2" class="st4">
+     HSEL 
+   </text> 
+  </g> 
+  <g id="shape11-15" transform="translate(57.1929,-161.575)"> 
+   <title>Sheet.11</title> 
+   <desc>
+     HADDR[AW-1:0] 
+   </desc> 
+   <rect x="0" y="212.849" width="72.2835" height="5.90929" class="st1" /> 
+   <text x="6.53" y="218.2" class="st4">
+     HADDR[AW-1:0] 
+   </text> 
+  </g> 
+  <g id="shape12-18" transform="translate(65.6969,-150.236)"> 
+   <title>Sheet.12</title> 
+   <desc>
+     HTRANS[1:0] 
+   </desc> 
+   <rect x="0" y="212.849" width="63.7795" height="5.90929" class="st1" /> 
+   <text x="9.58" y="218.2" class="st4">
+     HTRANS[1:0] 
+   </text> 
+  </g> 
+  <g id="shape16-21" transform="translate(89.437,-127.799)"> 
+   <title>Sheet.16</title> 
+   <desc>
+     HWRITE 
+   </desc> 
+   <rect x="0" y="213.329" width="39.9685" height="5.42929" class="st1" /> 
+   <text x="4.4" y="218.44" class="st4">
+     HWRITE 
+   </text> 
+  </g> 
+  <g id="shape17-24" transform="translate(69.9488,-93.4998)"> 
+   <title>Sheet.17</title> 
+   <desc>
+     HREADYOUT 
+   </desc> 
+   <rect x="0" y="212.806" width="59.5276" height="5.95276" class="st1" /> 
+   <text x="4.88" y="218.18" class="st4">
+     HREADYOUT 
+   </text> 
+  </g> 
+  <g id="shape18-27" transform="translate(62.8622,-72.2835)"> 
+   <title>Sheet.18</title> 
+   <desc>
+     HRDATA[31:0] 
+   </desc> 
+   <rect x="0" y="214.266" width="66.6142" height="4.49197" class="st1" /> 
+   <text x="7.49" y="218.91" class="st4">
+     HRDATA[31:0] 
+   </text> 
+  </g> 
+  <g id="shape19-30" transform="translate(90.9252,-82.4447)"> 
+   <title>Sheet.19</title> 
+   <desc>
+     HRESP 
+   </desc> 
+   <rect x="0" y="214.266" width="37.1339" height="4.49197" class="st1" /> 
+   <text x="5.59" y="218.91" class="st4">
+     HRESP 
+   </text> 
+  </g> 
+  <g id="shape23-33" transform="translate(86.9567,-117.049)"> 
+   <title>Sheet.23</title> 
+   <desc>
+     HREADY 
+   </desc> 
+   <rect x="0" y="214.266" width="42.5197" height="4.49197" class="st1" /> 
+   <text x="4.72" y="218.91" class="st4">
+     HREADY 
+   </text> 
+  </g> 
+  <g id="shape24-36" transform="translate(60.0276,-106.299)"> 
+   <title>Sheet.24</title> 
+   <desc>
+     HWDATA[31:0] 
+   </desc> 
+   <rect x="0" y="214.266" width="69.4488" height="4.49197" class="st1" /> 
+   <text x="8.56" y="218.91" class="st4">
+     HWDATA[31:0] 
+   </text> 
+  </g> 
+  <g id="shape25-39" transform="translate(81.1457,-139.138)"> 
+   <title>Sheet.25</title> 
+   <desc>
+     HSIZE[2:0] 
+   </desc> 
+   <rect x="0" y="214.266" width="48.4724" height="4.49197" class="st1" /> 
+   <text x="4" y="218.91" class="st4">
+     HSIZE[2:0] 
+   </text> 
+  </g> 
+  <g id="shape28-42" transform="translate(261.783,-195.235)"> 
+   <title>Sheet.28</title> 
+   <desc>
+     ADDR[AW-1:0] 
+   </desc> 
+   <rect x="0" y="212.493" width="64.1339" height="6.26498" class="st1" /> 
+   <text x="4.08" y="218.03" class="st4">
+     ADDR[AW-1:0] 
+   </text> 
+  </g> 
+  <g id="shape30-45" transform="translate(262.138,-183.896)"> 
+   <title>Sheet.30</title> 
+   <desc>
+     DATAOUT[15:0] 
+   </desc> 
+   <rect x="0" y="212.493" width="69.4488" height="6.26498" class="st1" /> 
+   <text x="4" y="218.03" class="st4">
+     DATAOUT[15:0] 
+   </text> 
+  </g> 
+  <g id="shape34-48" transform="translate(34.5157,-41.3424)"> 
+   <title>Sheet.34</title> 
+   <desc>
+     CFGREADCYCLE[2:0] 
+   </desc> 
+   <rect x="0" y="211.672" width="94.7835" height="7.08661" class="st1" /> 
+   <text x="7.24" y="217.62" class="st4">
+     CFGREADCYCLE[2:0] 
+   </text> 
+  </g> 
+  <g id="shape35-51" transform="translate(34.5157,-31.4211)"> 
+   <title>Sheet.35</title> 
+   <desc>
+     CFGWRITECYCLE[2:0] 
+   </desc> 
+   <rect x="0" y="214.266" width="94.9606" height="4.49197" class="st1" /> 
+   <text x="4.29" y="218.91" class="st4">
+     CFGWRITECYCLE[2:0] 
+   </text> 
+  </g> 
+  <g id="shape36-54" transform="translate(0.5,-20.9329)"> 
+   <title>Sheet.36</title> 
+   <desc>
+     CFGTURNAROUNDCYCLE[2:0] 
+   </desc> 
+   <rect x="0" y="214.79" width="128.976" height="3.9685" class="st1" /> 
+   <text x="6.78" y="219.17" class="st4">
+     CFGTURNAROUNDCYCLE[2:0] 
+   </text> 
+  </g> 
+  <g id="shape37-57" transform="translate(85.5394,-9.3326)"> 
+   <title>Sheet.37</title> 
+   <desc>
+     CFGSIZE 
+   </desc> 
+   <rect x="0" y="214.266" width="43.937" height="4.49197" class="st1" /> 
+   <text x="5.28" y="218.91" class="st4">
+     CFGSIZE 
+   </text> 
+  </g> 
+  <g id="shape40-60" transform="translate(261.783,-133.468)"> 
+   <title>Sheet.40</title> 
+   <desc>
+     DATAOEn 
+   </desc> 
+   <rect x="0" y="213.089" width="49.9606" height="5.66929" class="st1" /> 
+   <text x="4" y="218.32" class="st4">
+     DATAOEn 
+   </text> 
+  </g> 
+  <g id="shape42-63" transform="translate(262.138,-121.592)"> 
+   <title>Sheet.42</title> 
+   <desc>
+     DATAIN[15:0] 
+   </desc> 
+   <rect x="0" y="212.551" width="60.9449" height="6.20714" class="st1" /> 
+   <text x="4" y="218.05" class="st4">
+     DATAIN[15:0] 
+   </text> 
+  </g> 
+  <g id="shape48-66" transform="translate(263.555,-58.1731)"> 
+   <title>Sheet.48</title> 
+   <desc>
+     WEn 
+   </desc> 
+   <rect x="0" y="213.089" width="28.3465" height="5.66929" class="st1" /> 
+   <text x="4" y="218.32" class="st4">
+     WEn 
+   </text> 
+  </g> 
+  <g id="shape49-69" transform="translate(263.555,-45.5943)"> 
+   <title>Sheet.49</title> 
+   <desc>
+     OEn 
+   </desc> 
+   <rect x="0" y="213.089" width="25.5118" height="5.66929" class="st1" /> 
+   <text x="4" y="218.32" class="st4">
+     OEn 
+   </text> 
+  </g> 
+  <g id="shape50-72" transform="translate(263.555,-34.2557)"> 
+   <title>Sheet.50</title> 
+   <desc>
+     CEn 
+   </desc> 
+   <rect x="0" y="213.089" width="28.3465" height="5.66929" class="st1" /> 
+   <text x="4" y="218.32" class="st4">
+     CEn 
+   </text> 
+  </g> 
+  <g id="shape51-75" transform="translate(263.555,-22.9172)"> 
+   <title>Sheet.51</title> 
+   <desc>
+     LBn 
+   </desc> 
+   <rect x="0" y="212.791" width="25.5118" height="5.96714" class="st1" /> 
+   <text x="4" y="218.17" class="st4">
+     LBn 
+   </text> 
+  </g> 
+  <g id="shape52-78" transform="translate(263.555,-11.5786)"> 
+   <title>Sheet.52</title> 
+   <desc>
+     UBn 
+   </desc> 
+   <rect x="0" y="213.089" width="28.3465" height="5.66929" class="st1" /> 
+   <text x="4" y="218.32" class="st4">
+     UBn 
+   </text> 
+  </g> 
+  <use id="shape43-81" xlink:href="#master0" transform="translate(240.878,-14.4132)"> 
+   <title>Line 0.5 (1)</title> 
+  </use> 
+  <use id="shape44-88" xlink:href="#master0" transform="translate(240.878,-25.7518)"> 
+   <title>Line 0.5 (1).44</title> 
+  </use> 
+  <use id="shape45-90" xlink:href="#master0" transform="translate(240.878,-37.0904)"> 
+   <title>Line 0.5 (1).45</title> 
+  </use> 
+  <use id="shape46-92" xlink:href="#master0" transform="translate(240.878,-48.429)"> 
+   <title>Line 0.5 (1).46</title> 
+  </use> 
+  <use id="shape47-94" xlink:href="#master0" transform="translate(240.878,-59.7676)"> 
+   <title>Line 0.5 (1).47</title> 
+  </use> 
+  <use id="shape41-96" xlink:href="#master4" transform="translate(240.878,-124.964)"> 
+   <title>Bus (3)</title> 
+  </use> 
+  <use id="shape39-103" xlink:href="#master0" transform="translate(240.878,-136.303)"> 
+   <title>Line 0.5 (1).39</title> 
+  </use> 
+  <use id="shape29-105" xlink:href="#master5" transform="translate(240.878,-187.327)"> 
+   <title>Bus (1)</title> 
+  </use> 
+  <use id="shape27-112" xlink:href="#master5" transform="translate(240.878,-198.665)"> 
+   <title>Bus (1).27</title> 
+  </use> 
+  <use id="shape38-114" xlink:href="#master0" transform="translate(130.327,-11.5786)"> 
+   <title>Line 0.5 (1).38</title> 
+  </use> 
+  <use id="shape33-116" xlink:href="#master5" transform="translate(130.327,-22.9172)"> 
+   <title>Bus (1).33</title> 
+  </use> 
+  <use id="shape32-118" xlink:href="#master5" transform="translate(130.327,-34.2557)"> 
+   <title>Bus (1).32</title> 
+  </use> 
+  <use id="shape31-120" xlink:href="#master5" transform="translate(130.327,-45.5943)"> 
+   <title>Bus (1).31</title> 
+  </use> 
+  <use id="shape22-122" xlink:href="#master4" transform="translate(130.327,-73.9408)"> 
+   <title>Bus (3).22</title> 
+  </use> 
+  <use id="shape21-124" xlink:href="#master6" transform="translate(130.327,-85.2794)"> 
+   <title>Signal (3)</title> 
+  </use> 
+  <use id="shape20-131" xlink:href="#master6" transform="translate(130.327,-96.618)"> 
+   <title>Signal (3).20</title> 
+  </use> 
+  <use id="shape15-133" xlink:href="#master5" transform="translate(130.327,-107.957)"> 
+   <title>Bus (1).15</title> 
+  </use> 
+  <use id="shape14-135" xlink:href="#master0" transform="translate(130.327,-119.295)"> 
+   <title>Line 0.5 (1).14</title> 
+  </use> 
+  <use id="shape13-137" xlink:href="#master0" transform="translate(130.327,-130.634)"> 
+   <title>Line 0.5 (1).13</title> 
+  </use> 
+  <use id="shape26-139" xlink:href="#master5" transform="translate(130.327,-141.972)"> 
+   <title>Bus (1).26</title> 
+  </use> 
+  <use id="shape7-141" xlink:href="#master5" transform="translate(130.327,-153.311)"> 
+   <title>Bus (1).7</title> 
+  </use> 
+  <use id="shape6-143" xlink:href="#master5" transform="translate(130.327,-164.649)"> 
+   <title>Bus (1).6</title> 
+  </use> 
+  <use id="shape5-145" xlink:href="#master0" transform="translate(130.327,-175.988)"> 
+   <title>Line 0.5 (1).5</title> 
+  </use> 
+  <use id="shape4-147" xlink:href="#master0" transform="translate(130.327,-187.327)"> 
+   <title>Line 0.5 (1).4</title> 
+  </use> 
+  <use id="shape3-149" xlink:href="#master0" transform="translate(130.327,-198.665)"> 
+   <title>Line 0.5 (1).3</title> 
+  </use> 
+ </g> 
+</svg>

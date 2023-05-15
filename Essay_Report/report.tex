@@ -83,9 +83,6 @@ As the logic and pins are part of the IC, JTAG will allow for testing throughout
 Engineers can use the interface during prototyping, production, and after deployment\cite{Corelis}.
 JTAG also daisy chains, allowing multiple devices within a system to be tested with one interface.
 
-(208)
-
-
 \subsection{JTAG Functionality}
 The JTAG implementation shown in Figure 1 of the essay brief connects to the internal bus of the ARM Cortex-M0 SoC.
 This connection enables the JTAG interface to control and monitor the data on that bus, allowing one to shift in a test pattern to test
@@ -114,9 +111,6 @@ The state machine has two paths to capture and control the data on the instructi
 The cells must also be created in VHDL using multiplexers and latches. 
 These cells have a parallel input and output, which allow for the regular operation of the device, and shift inputs and outputs, which are used during tests to load data in or read data out.
 
-(235)
-
-
 \subsection{VHDL Implementation}
 Various VHDL implementation concepts can be used to create a low-latency JTAG implementation.
 As a whole JTAG throughput can be increased via parallelizing and pipeline, which involved doing multiple operations in parallel and breaking one operation into stages respectively.
@@ -126,7 +120,7 @@ The main areas to optimize for latency in JTAG are the shift registers and the f
 
 As mentioned the TAP in JTAG functions with a state machine, which can be optimized in different ways.
 The finite state machine can be split into next-state logic, state memory, output logic, and output register.
-Next-state logic has a sensitivity list of only the TMS line, and on the rising edge of the clock, its output will be saved as the current state in the state memory.
+Next-state logic has a sensitivity list of only the TMS line, meaning the logic triggers exclusively when the TMS line is updated, and on the rising edge of the clock, its output will be saved as the current state in the state memory.
 Splitting it like this allows reduces the fan-out and the amount of resources that need to be used.
 The state can also be stored as a 4-bit integer (as there are 16 states), assuming this system does not need to use one-hot encoding as it is for testing.
 Finally for the state machine implementing asynchronous reset, meaning that the rest will occur regardless of the clock, will help as it allows quicker resetting between tests.
@@ -134,8 +128,11 @@ Finally for the state machine implementing asynchronous reset, meaning that the 
 A lot of the latency in JTAG occurs while data is being shifted into or out of the shift registers (both the instruction and the data registers.)
 To speed this up a specific type of shift register, the barrel shifter, can be used.
 Barrel shifters are purely combinational, consisting essentially of sequences of multiplexers, and can shift a specific number of bits over which can be useful for quickly loading and unloading.
-This would also require some logic on the TDI line as data comes in only 
+This would also require some logic on the TDI line as data comes in serial and would need to be made parallel.
 
+JTAG also makes use of BSDL, Boundary Scan Description Language,
+which is a subset of VHDL used to give accurate descriptions of the features of a device with JTAG (or other boundary scanning methods).
+The descriptions define each digital signal and can be given to automated tools to generate test programs for the board\cite{Corelis}.
 
 
 \subsection{Calculations Single Stage} \label{sec:single}
@@ -188,6 +185,7 @@ This has to account for the added register overhead\cite{dally} ($T_m$ and $t_{\
 \end{align}
 
 This nine-stage pipelined process can now be parallelized.
+To do this it is assumed that the module can be split into nine equal parts. 
 The four-core nature of the new system does not add any timing overhead but will increase throughput four-fold, as the task will be completed in parallel.
 \begin{align}
     \Theta = \Theta_{\text{pipeline}} * 4 = 337.08\text{ Mops} * 4 = 1348.31 \text{ Mops}
@@ -203,21 +201,44 @@ The new requirement can be calculated as follows, with $n$ being the number of s
 
 Pipelining must also be done in a manner that avoids bottlenecking the system, as the slowest module limits throughput.
 
-(262)
 
 \section{Design Challenge}
 \subsection{Architecture and Block's Design} \label{sec:block}
 For this section, an AMBA interface to six external SRAM devices with a Hamming encoder and decoder was to be designed.
 This will allow the processor in Figure 1 of the essay brief to use SRAM with some extra noise protection from the Hamming codes.
+To do this the following assumptions will be made, firstly it is assumed that the data to be stored on the SRAM is in 16-bit words.
+It will also be assumed that this system is non-critical and that noise due to environmental factors (radiation, EMI, etc.) is minimal. 
+Finally, it is assumed that SRAM devices consist of just memory cells and require an external controller.
+With the assumptions the design in Figure \ref{fig:amba} was created.
 
-AMBA, or Advanced Microcontroller Bus Architecture, is an open architecture used as the standard solution for how blocks on an SoC or ASIC interface\cite{amba}.
-The Cortex-M design uses the AHB-Lte (High-performance Bus) protocol, which is a version of AHB with a single master.
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=\textwidth]{logo.png}
+    \caption{Architecture of AMBA Interface}
+    \label{fig:amba}
+\end{figure} 
+
+Before looking at the individual blocks AMBA, or Advanced Microcontroller Bus Architecture, must be discussed.
+AMBA is an open architecture used as the standard solution for how blocks on an SoC or ASIC interface\cite{amba}.
+The Cortex-M design uses the AHB-Lite (High-performance Bus) protocol, which is a version of AHB with a single master.
+With this knowledge, a module provided by ARM, the creators of AMBA,
+for communicating between an AHB and an external SRAM called \texttt{ahb\_to\_extmem16.v} can be used\cite{sram_arm}.
+The pinout of this block can be seen in Figure \ref{fig:ahb_ext}, which shows how the information from the bus gets converted into the required inputs and outputs for memory.
+The important
+Th
+This is likely achieved using a state machine internally, as well as multiplexers and buffers to get information off the bus, meaning that the design uses mixed logic.
+
+\begin{figure}[H]        
+    \centering
+    \includegraphics[width=.5\textwidth]{ahb_ext.png}
+    \caption{AHB to External Memory\cite{sram_arm}}
+    \label{fig:ahb_ext}
+\end{figure} 
+
 SRAM, static random access memory, is a type of volatile memory (data is only retained when powered) \cite{dally}. 
-SRAM is most easily compared to DRAM, with the key difference being structure.
-SRAM consists of flip-flops requiring multiple transistors, which incurs a higher cost per GB when compared to DRAM.
-However, using flip-flips means SRAM need not be refreshed the way DRAM must, allowing SRAM to offer quick (single cycle) memory on-chip while also being lower power.
+Comparing SRAM to DRAM, the key difference is the structure as SRAM consists of flip-flops requiring multiple transistors, which incurs a higher cost per GB when compared to DRAM.
+However, using flip-flips with feedback loops means SRAM need not be refreshed the way DRAM must, allowing SRAM to offer quick (single cycle) memory on-chip while also being lower power.
 As size per chip is limited, multiple SRAM ships are often used together.
-
 
 As with most memory SRAM requires an address, data input, and write signal and produces only a data output. Most SRAM is also synchronous, requiring a clock.
 
@@ -225,11 +246,15 @@ Hamming codes are a type of error detection and correction code that allow for o
 A Hamming code archives this by adding parity bits to blocks of data.
 Hamming codes only work with single-bit errors. \cite{hamming} \cite{ham}
 
+
+
 \subsection{VHDL Implementation}
 
 The design in part \ref{sec:block} can be improved in several ways.
-Improvement however is relevant, as it depends on what the design needs to be otimized for.
-If optimizing for speed . . . 
+Improvement however is relevant, as it depends on what the design needs to be optimized for.
+Often systems will be optimized for speed, size, or power usage.
+If optimizing for speed parts of this system can be pipelined by adding registers that allow the SRAM controller to begin creating the next instruction while the data is being fetched.
+This will increase size and power usage somewhat, however. 
 
 \pagebreak
 \appendix
